@@ -44,7 +44,62 @@ static ast_t ast = NULL;
 
 %%
 
+PROGRAM
+	: PROGRAM_ELEMENT
+	{
+		ast = newRoot('l', ast, $1.u.node);
+	}
+	| PROGRAM PROGRAM_ELEMENT
+	{
+		ast = newRoot('l', ast, $2.u.node);
+	};
 
+PROGRAM_ELEMENT
+	: SENTENCE '\n'
+	{
+		$$ = $1;
+	}
+	| '\n'
+	{
+		$$.type = AST_NODE;
+		$$.u.node = NULL;
+	};
+
+SENTENCIA
+	: ID '=' EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode(ASSIG, newLeafString(ID, $1.u.string), $3.u.node);
+	}
+	| PRINT EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode(PRINT, NULL, $2.u.node);
+	}
+	| PRINT STR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode(PRINT, newLeafString(STR, $2.u.string), NULL);
+	}
+	| PRINT STR EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode(PRINT, newLeafString(STR, $2.u.string), $3.u.node);
+	}
+	| READ ID
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode(READ, NULL, newLeafString(ID, $2.u.string));
+	}
+	| READ STR ID
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode(READ, newLeafString(STR, $2.u.string), newLeafString(ID, $3.u.string))
+	};
+	/* TODO: IF ELSE WHILE FOR... */
+
+EXPR
+	:
 
 %%
 
