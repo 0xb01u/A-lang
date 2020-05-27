@@ -23,19 +23,20 @@ extern int lineNum;
 static ast_t ast = NULL;
 %}
 
+ /* Tipo/estructura de los tokens */
 %union {
 	struct syn_elem {
-		unsigned char type;
-		union {
-			double real_value;
-			int int_value;
-			char *string;
+		unsigned char type;	/* Tipo de token */
+		union {				/* Valor útil del token */
+			double real_value;	/* Como número real */
+			long int_value;		/* Como número entero */
+			char *string;		/* Como cadena de caracteres */
 			struct ast_s *node;
 		} u;
 	} s;
 }
 
-// Operadores lógicos.
+// TODO: Operadores lógicos.
 
 %left '+' '-'
 %left '*' '/'
@@ -44,53 +45,66 @@ static ast_t ast = NULL;
 
 %%
 
+ /* Producciones de un programa */
 PROGRAM
+	/* Un único elemento de programa */
 	: PROGRAM_ELEMENT
 	{
 		ast = newRoot('l', ast, $1.u.node);
 	}
+	/* Varios elementos de programa */
 	| PROGRAM PROGRAM_ELEMENT
 	{
 		ast = newRoot('l', ast, $2.u.node);
 	};
 
+ /* Elementos de un programa */
 PROGRAM_ELEMENT
+	/* Sentencia */
 	: SENTENCE '\n'
 	{
 		$$ = $1;
 	}
+	/* Sentencia vacía */
 	| '\n'
 	{
 		$$.type = AST_NODE;
 		$$.u.node = NULL;
 	};
 
+ /* Sentencias */
 SENTENCIA
+	/* Asignación */
 	: ID '=' EXPR
 	{
 		$$.type = AST_NODE;
 		$$.u.node = newNode(ASSIG, newLeafString(ID, $1.u.string), $3.u.node);
 	}
+	/* Impresión de un valor */
 	| PRINT EXPR
 	{
 		$$.type = AST_NODE;
 		$$.u.node = newNode(PRINT, NULL, $2.u.node);
 	}
+	/* Impresión de una string */
 	| PRINT STR
 	{
 		$$.type = AST_NODE;
 		$$.u.node = newNode(PRINT, newLeafString(STR, $2.u.string), NULL);
 	}
+	/* Impresión de una string y un valor */
 	| PRINT STR EXPR
 	{
 		$$.type = AST_NODE;
 		$$.u.node = newNode(PRINT, newLeafString(STR, $2.u.string), $3.u.node);
 	}
+	/* Lectura de un valor */
 	| READ ID
 	{
 		$$.type = AST_NODE;
 		$$.u.node = newNode(READ, NULL, newLeafString(ID, $2.u.string));
 	}
+	/* Lectura de un valor con mensaje de aviso */
 	| READ STR ID
 	{
 		$$.type = AST_NODE;
