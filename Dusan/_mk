@@ -1,0 +1,3 @@
+bison --defines -v inter05.y -o inter05.c
+flex -o inter05.lex.c inter05.l
+gcc inter05.c inter05.lex.c symtab.c stduse.c astree.c  -o x_inter05 -lm
