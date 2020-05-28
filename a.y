@@ -21,13 +21,14 @@ extern int lineNum;
 
 /* Árbol de sintaxis */
 static ast_t ast = NULL;
+
 %}
 
  /* Tipo/estructura de los tokens */
 %union {
 	struct syn_elem {
-		unsigned char type;	/* Tipo de token */
-		union {				/* Valor útil del token */
+		unsigned char type;		/* Tipo de token */
+		union {					/* Valor útil del token */
 			double real_value;	/* Como número real */
 			long int_value;		/* Como número entero */
 			char *string;		/* Como cadena de caracteres */
@@ -42,6 +43,7 @@ static ast_t ast = NULL;
 %left '*' '/'
 
 %right '^'
+%nonassoc UNARY
 
 %%
 
@@ -113,7 +115,114 @@ SENTENCIA
 	/* TODO: IF ELSE WHILE FOR... */
 
 EXPR
-	:
+	: EXPR EQ EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode(EQ, $1.u.node, $3.u.node);
+	}
+	| EXPR NE EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode(NE, $1.u.node, $3.u.node);
+	}
+	| EXPR LT EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode(LT, $1.u.node, $3.u.node);
+	}
+	| EXPR GT EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode(GT, $1.u.node, $3.u.node);
+	}
+	/*| EXPR AND EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode(AND, $1.u.node, $3.u.node);
+	}
+	| EXPR OR EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode(OR, $1.u.node, $3.u.node);
+	}*/
+	| EXPR '+' EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode('+', $1.u.node, $3.u.node);
+	}
+	| EXPR '-' EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode('-', $1.u.node, $3.u.node);
+	}
+	| EXPR '*' EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode('*', $1.u.node, $3.u.node);
+	}
+	| EXPR '/' EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode('/', $1.u.node, $3.u.node);
+	}
+	| EXPR '%' EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode('%', $1.u.node, $3.u.node);
+	}
+	| EXPR '^' EXPR
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode('^', $1.u.node, $3.u.node);
+	}
+	| '+' EXPR %prec UNARY
+	{
+		$$ = $2;
+	}
+	| '-' EXPR %prec UNARY
+	{
+		$$.type = AST_NODE;
+		$$.u.node = newNode('-', NULL, $2.u.node);
+	}
+	| '(' EXPR ')'
+	{
+		$$ = $2;
+	}
+    | SIN EXPR
+    {
+      	$$.type = AST_NODE;
+      	$$.u.node = newNode(SIN,$2.u.node,NULL);
+    }
+    | COS EXPR
+    {
+      	$$.type = AST_NODE;
+      	$$.u.node = newNode(COS,$2.u.node,NULL);
+    }
+    | TAN EXPR
+    {
+      	$$.type = AST_NODE;
+      	$$.u.node = newNode(TAN,$2.u.node,NULL);
+    }
+    | LN EXPR
+    {
+      	$$.type = AST_NODE;
+      	$$.u.node = newNode(LN,$2.u.node,NULL);
+    }
+    | EXPR DIV EXPR
+    {
+      	$$.type = AST_NODE;
+      	$$.u.node = newNode(DIV,$1.u.node,$3.u.node);
+    }
+    | ID
+    {
+      	$$.type = AST_NODE;
+      	$$.u.node = newLeafString(ID,$1.u.string);
+    }
+    | FLOAT
+    {
+      	$$.type = AST_NODE;
+      	$$.u.node = newLeafNum(FLOAT,$1.u.real_value);
+    };
 
 %%
 
@@ -162,3 +271,22 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+
+/*
+<------\
+<.     .\ O
+|  \______
+<\O____/
+ /     \
+>       <
+
+
+TODO
+Donehre ASCII
+
+
+*/
+
+
+
+

@@ -35,9 +35,10 @@ unsigned keyCodes[KWORDSL] = {
 	DIV,
 };
 
-static void lowerCase(char *s); /* Pasar todas las letras a minúsculas (definida abajo) */
-static char *readStr(void); /* Lee y guarda Strign como variable*/
 int yywrap(void) { return 1; }
+
+extern char programName[];
+
 %}
 
  /*Letras del alfabeto, minusculas y mayusculas*/
@@ -78,7 +79,8 @@ OP_AR		([-+/*%=()^])
 OP_LOG		("=="|"!="|"<"|">")
 
  /*Comienzo de cadena de caracteres*/
-STR_START	(["])
+STR_START	(["])/*"/**/
+
 %%
 
 WSPC		;
@@ -93,7 +95,7 @@ IDENT		{
 			
 			/*Recorre el listado de palabras clave para ver si la introducida lo es*/
 			while (i<KWORDSL && r<0) {
-				if ((r=strcmp(keyWords[i},yytext))==0) return keyCodes[i};
+				if ((r=strcmp(keyWords[i],yytext))==0) return keyCodes[i];
 				++i;
 			}
 			/*Si no es una palabra clave y lo devuelve como identificador*/
@@ -104,7 +106,7 @@ IDENT		{
 		}
 
 SEPAR		{	/*Salto de linea*/
-			++yylineno;
+			++lineNum;
 			return yytext[0];		
 		}
 
@@ -143,15 +145,14 @@ OP_LOG		{
 				case '!':
 					return NE;
 				case '<':
-					return LE;
+					return LT;
 				case '>':
-					return GE;
-		
+					return GT;
 			}
 		}
 		
 		{
-			prError(yylineno, "Caracter inesperado: %c [%d]\n", yytext[0], yytext[0], NULL);
+			printf("%s(%d): Caracter inesperado %c\n", programName, lineNum, yytext[0]);
 		}
 
 %%
@@ -192,7 +193,7 @@ static char *readStr(void) {
 	
 	do{
 		c=input();
-		if (c < ' ') prEerror(yylineno, "Simbolo no esperado en cadena de caracteres [%d]\n",c,NULL);
+		if (c < ' ') prEerror(lineNum, "Simbolo no esperado en cadena de caracteres [%d]\n",c,NULL);
 		if (c == '"') break;
 		if (c == '\\') {
 			c==input();
