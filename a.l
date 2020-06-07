@@ -120,7 +120,7 @@ NUMBER	{		/*Se lee el numero entero y se castea a double*/
 		}
 
 FLOAT		{	/*Se lee el numero decimal*/
-			sscanf(yytext, "%lf", &( yyFloat(yylval) ));
+			sscanf(yytext, "%lf", &(yyFloat(yylval)));
 			yyFlag(yylval) = fFLOAT;
 
 			return FLOAT;
@@ -172,44 +172,44 @@ static void addStr(char **s, unsigned long *len, char c) {
 	buf[1] = '\0';
 
 	if (strlen(*s) >= *len) {
-		char *ss;
-		ss = xmalloc(*len+1025);
+		char ss[len + 1025];
 		strcpy(ss, *s);
-		xfree(*s);
-		*s=ss;
-		*len = *len+1024;
+		*s = ss;
+		*len += 1024;
 	}
-	strcat(*s,buf);
+	strcat(*s, buf);
 }
 
 
 static char *readStr(void) {
 	int c;
-	char *buff;
+	char buff[257];
 	unsigned long len = 256;
 	
-	buff=xmalloc(257);
-	buff[0]='\0';
+	buff[0] = '\0';
 	
-	do{
-		c=input();
-		if (c < ' ') prEerror(lineNum, "Simbolo no esperado en cadena de caracteres [%d]\n",c,NULL);
+	do {
+		c = input();
+		if (c < ' ')
+			fprintf(stderr, "%s(%d): error -- Simbolo no esperado en cadena de caracteres: %c\n", programName, lineNum, c);
 		if (c == '"') break;
-		if (c == '\\') {
-			c==input();
-			if(c!='\\' && c != '"'){
+		if (c == '\\')
+		{
+			c = input();
+			if(c != '\\' && c != '"')
+			{
 				unput(c);
 				c = '\\';
 			}
 		}
-		addStr(&buff,&len,c);	
-	}
-	while(1);
+		addStr(&buff, &len, c);	
+	} while(1);
 	return buff;
 }
 
 /*
-<------\
+ ______
+<      \
 <.     .\ O
 |  \______
 <\O____/

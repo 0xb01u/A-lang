@@ -231,7 +231,7 @@ char programName[256] = "";
 /* Gestión de errores */
 int yyerror(char *str)
 {
-	printf("%s(%d): error %s\n", programName, lineNum, str);
+	printf("%s(%d): error -- %s\n", programName, lineNum, str);
 	return 1;
 }
 
@@ -273,7 +273,8 @@ int main(int argc, char *argv[])
 }
 
 /*
-<------\
+ ______
+<      \
 <.     .\ O
 |  \______
 <\O____/
