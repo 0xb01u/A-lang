@@ -54,10 +54,10 @@ EXP		([eE][-+]?{NUMBER})
  /*Distintas formas de representacion de constantes tipo float*/
 FLOAT_DOT	({NUMBER}"."{NUMBER})
 FLOAT_EXP	({NUMBER}{EXP})
-FLOAT_DE		({NUMBER}"."{NUMBER}{EXP})	
+FLOAT_DE	({NUMBER}"."{NUMBER}{EXP})	
  
  /*Representacion tipo float*/
-FLOAT     ({FLOAT_DOT}|{FLOAT_EXP}|{FLOAT_DE})
+FLOAT     	({FLOAT_DOT}|{FLOAT_EXP}|{FLOAT_DE})
 
  /*Identificador*/
 ID		({LETTER}({LETTER}|{DIGIT})*)	 
