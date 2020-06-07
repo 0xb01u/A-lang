@@ -1,8 +1,3 @@
-/*
- * @Author: Manuel de Castro Caballero, María Ruiz Molina, Andrés Trigueros Vega
- * @Year: 2020
- */
-
 #include "astree.h"
 #include "stduse.h"
 #include "a.h"
@@ -12,12 +7,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-extern int lineNum;
+extern int yylineno;
 
 // Hoja String
 ast_t *newLeafString(unsigned tag, char *str) {
     ast_t *res = xmalloc(sizeof(ast_t));
-    lnum(res) = (unsigned)lineNum;
+    lnum(res) = (unsigned)yylineno;
     tag(res) = tag;
     sv(res) = str;
     return res;
@@ -27,7 +22,7 @@ ast_t *newLeafString(unsigned tag, char *str) {
 // Hoja double
 ast_t *newLeafNum(unsigned tag, double dval) {
     ast_t *res = xmalloc(sizeof(ast_t));
-    lnum(res) = (unsigned)lineNum;
+    lnum(res) = (unsigned)yylineno;
     tag(res) = tag;
     dv(res) = dval;
     return res;
@@ -36,7 +31,7 @@ ast_t *newLeafNum(unsigned tag, double dval) {
 // Nodo (padre de l y r)
 ast_t *newNode(unsigned tag, ast_t *l, ast_t *r) {
     ast_t *res = xmalloc(sizeof(ast_t));
-    lnum(res) = (unsigned)lineNum;
+    lnum(res) = (unsigned)yylineno;
     tag(res) = tag;
     left(res) = l;
     right(res) = r;
@@ -138,7 +133,8 @@ static double expr(ast_t *root) {
             return cos( expr(left(root)) );
         case TAN:
             return tan( expr(left(root)) );
-        //
+       
+
         default:
             prError((unsigned short)lnum(root),"Etiqueta desconocida en expresion AST %u\n",tag(root),NULL);
             break;
@@ -172,19 +168,40 @@ static void proc(ast_t *root) {
             break;
         case READ:
             // No hay que imprimir
-            if (left(root) == NULL) {
-                double rval;
-                scanf("%lf",&rval);
-                // Cambia el valor del simbolo en la tabla
-                insertModify(sv(right(root)), rval);
-            } else {  // Hay que imprimir (nodo izquierdo)
-                double rval;
-                printf("%s", sv(left(root)));
-                scanf("%lf", &rval);
-                // Cambia el valor del simbolo en la tabla
-                insertModify( sv(right(root)), rval);
+            	if (left(root) == NULL) {
+                	double rval;
+              	 	scanf("%lf",&rval);
+              	  // Cambia el valor del simbolo en la tabla
+                	insertModify(sv(right(root)), rval);
+            	} else {  // Hay que imprimir (nodo izquierdo)
+             	  	 double rval;
+               		 printf("%s", sv(left(root)));
+               		 scanf("%lf", &rval);
+               		 // Cambia el valor del simbolo en la tabla
+                	 insertModify( sv(right(root)), rval);
             }
-            break;
+		break;
+ 	//bloque while
+	case WHILE:
+		if (right(root) == NULL) {
+			while (expr(left(root)));
+		}else {
+			while (expr(left(root))){
+				evaluate(right(root));	
+			}	
+		}
+	break;
+//IF SIN ACABAR
+	case IF:
+		if (right(root) == NULL) {
+		}
+		else{
+		if(left(root)){
+			right(root);
+		}
+	}
+	break;
+
         default:
            
             prError((unsigned short)lnum(root),"Etiqueta desconocida en expresion AST %u\n",tag(root),NULL);
