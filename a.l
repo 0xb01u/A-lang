@@ -1,5 +1,5 @@
 /**
- * @Autores: 
+ * @Autores: Manuel de Castro Caballero, María Ruiz Molina, Andrés Trigueros Vega
  * @Curso: 2019 - 2020
  */
 
@@ -10,7 +10,7 @@
 
 #define KWORDSN = 10
 
-char *keyWords[KWORDSL] = {
+char *keyWords[KWORDSN] = {
 	"read"
 	"print"
 	"if"
@@ -22,7 +22,7 @@ char *keyWords[KWORDSL] = {
 	"ln"
 	"div"
 };
-unsigned keyCodes[KWORDSL] = {
+unsigned keyCodes[KWORDSN] = {
 	READ,
 	PRINT,
 	IF,
@@ -54,10 +54,10 @@ EXP		([eE][-+]?{NUMBER})
  /*Distintas formas de representacion de constantes tipo float*/
 FLOAT_DOT	({NUMBER}"."{NUMBER})
 FLOAT_EXP	({NUMBER}{EXP})
-FLOAT_DE		({NUMBER}"."{NUMBER}{EXP})	
+FLOAT_DE	({NUMBER}"."{NUMBER}{EXP})	
  
  /*Representacion tipo float*/
-FLOAT     ({FLOAT_DOT}|{FLOAT_EXP}|{FLOAT_DE})
+FLOAT     	({FLOAT_DOT}|{FLOAT_EXP}|{FLOAT_DE})
 
  /*Identificador*/
 ID		({LETTER}({LETTER}|{DIGIT})*)	 
@@ -86,7 +86,7 @@ STR_START	(["])/*"/**/
 WSPC		;
 
 
-IDENT		{	
+ID		{	
 			unsigned i = 0;
 			int r = -1;
 			char *res;
@@ -94,26 +94,26 @@ IDENT		{
 			lower(yytext);
 			
 			/*Recorre el listado de palabras clave para ver si la introducida lo es*/
-			while (i<KWORDSL && r<0) {
+			while (i<KWORDSN && r<0) {
 				if ((r=strcmp(keyWords[i],yytext))==0) return keyCodes[i];
 				++i;
 			}
 			/*Si no es una palabra clave y lo devuelve como identificador*/
 			yystr(yylval)=sdup(yytext);
 			yyFlag(yylval)=fIDENT;
-			
-			return IDENT;
+
+			return ID;
 		}
 
 SEPAR		{	/*Salto de linea*/
 			++lineNum;
-			return yytext[0];		
+			return yytext[0];
 		}
 
 NUMBER	{		/*Se lee el numero entero y se castea a double*/
 			long int li;
 			sscanf(yytext, "%d", &li);
-			yyFLoat(yylval) = (double)li;
+			yyFloat(yylval) = (double)li;
 			yyFlag(yylval) = fFLOAT;
 
 			return FLOAT;
@@ -189,7 +189,7 @@ static char *readStr(void) {
 	buff[0] = '\0';
 	
 	do {
-		c = input();
+		c == input();
 		if (c < ' ')
 			fprintf(stderr, "%s(%d): error -- Simbolo no esperado en cadena de caracteres: %c\n", programName, lineNum, c);
 		if (c == '"') break;
