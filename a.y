@@ -11,11 +11,7 @@
 #include <string.h>
 
 #include "ast.c"
-
-/* Salidas del programa. */
-#define PARSE_SUCCESS 0
-#define SYNTAX_ERROR -2
-#define FILE_ERROR -3
+#include "exits.h"
 
 extern int lineNum;
 
