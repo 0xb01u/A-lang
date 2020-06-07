@@ -1,3 +1,8 @@
+/*
+ * @Author: Manuel de Castro Caballero, María Ruiz Molina, Andrés Trigueros Vega
+ * @Year: 2020
+ */
+
 #include "astree.h"
 #include "stduse.h"
 #include "a.h"
