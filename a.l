@@ -1,5 +1,5 @@
 /**
- * @Autores: 
+ * @Autores: Manuel de Castro Caballero, María Ruiz Molina, Andrés Trigueros Vega
  * @Curso: 2019 - 2020
  */
 
@@ -10,7 +10,7 @@
 
 #define KWORDSN = 10
 
-char *keyWords[KWORDSL] = {
+char *keyWords[KWORDSN] = {
 	"read"
 	"print"
 	"if"
@@ -22,7 +22,7 @@ char *keyWords[KWORDSL] = {
 	"ln"
 	"div"
 };
-unsigned keyCodes[KWORDSL] = {
+unsigned keyCodes[KWORDSN] = {
 	READ,
 	PRINT,
 	IF,
@@ -86,7 +86,7 @@ STR_START	(["])/*"/**/
 WSPC		;
 
 
-IDENT		{	
+ID		{	
 			unsigned i = 0;
 			int r = -1;
 			char *res;
@@ -94,33 +94,33 @@ IDENT		{
 			lower(yytext);
 			
 			/*Recorre el listado de palabras clave para ver si la introducida lo es*/
-			while (i<KWORDSL && r<0) {
+			while (i<KWORDSN && r<0) {
 				if ((r=strcmp(keyWords[i],yytext))==0) return keyCodes[i];
 				++i;
 			}
 			/*Si no es una palabra clave y lo devuelve como identificador*/
 			yystr(yylval)=sdup(yytext);
 			yyFlag(yylval)=fIDENT;
-			
-			return IDENT;
+
+			return ID;
 		}
 
 SEPAR		{	/*Salto de linea*/
 			++lineNum;
-			return yytext[0];		
+			return yytext[0];
 		}
 
 NUMBER	{		/*Se lee el numero entero y se castea a double*/
 			long int li;
 			sscanf(yytext, "%d", &li);
-			yyFLoat(yylval) = (double)li;
+			yyFloat(yylval) = (double)li;
 			yyFlag(yylval) = fFLOAT;
 
 			return FLOAT;
 		}
 
 FLOAT		{	/*Se lee el numero decimal*/
-			sscanf(yytext, "%lf", &( yyFloat(yylval) ));
+			sscanf(yytext, "%lf", &(yyFloat(yylval)));
 			yyFlag(yylval) = fFLOAT;
 
 			return FLOAT;
@@ -172,44 +172,44 @@ static void addStr(char **s, unsigned long *len, char c) {
 	buf[1] = '\0';
 
 	if (strlen(*s) >= *len) {
-		char *ss;
-		ss = xmalloc(*len+1025);
+		char ss[len + 1025];
 		strcpy(ss, *s);
-		xfree(*s);
-		*s=ss;
-		*len = *len+1024;
+		*s = ss;
+		*len += 1024;
 	}
-	strcat(*s,buf);
+	strcat(*s, buf);
 }
 
 
 static char *readStr(void) {
 	int c;
-	char *buff;
+	char buff[257];
 	unsigned long len = 256;
 	
-	buff=xmalloc(257);
-	buff[0]='\0';
+	buff[0] = '\0';
 	
-	do{
-		c=input();
-		if (c < ' ') prEerror(lineNum, "Simbolo no esperado en cadena de caracteres [%d]\n",c,NULL);
+	do {
+		c == input();
+		if (c < ' ')
+			fprintf(stderr, "%s(%d): error -- Simbolo no esperado en cadena de caracteres: %c\n", programName, lineNum, c);
 		if (c == '"') break;
-		if (c == '\\') {
-			c==input();
-			if(c!='\\' && c != '"'){
+		if (c == '\\')
+		{
+			c = input();
+			if(c != '\\' && c != '"')
+			{
 				unput(c);
 				c = '\\';
 			}
 		}
-		addStr(&buff,&len,c);	
-	}
-	while(1);
+		addStr(&buff, &len, c);	
+	} while(1);
 	return buff;
 }
 
 /*
-<------\
+ ______
+<      \
 <.     .\ O
 |  \______
 <\O____/
