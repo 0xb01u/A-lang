@@ -1,3 +1,0 @@
-# Proyecto final de GLF
-
-

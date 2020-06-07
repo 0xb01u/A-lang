@@ -1,3 +1,8 @@
+/*
+ * @Author: Manuel de Castro Caballero, María Ruiz Molina, Andrés Trigueros Vega
+ * @Year: 2020
+ */
+
 #include "astree.h"
 #include "stduse.h"
 #include "a.h"
@@ -7,12 +12,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-extern int yylineno;
+extern int lineNum;
 
 // Hoja String
 ast_t *newLeafString(unsigned tag, char *str) {
     ast_t *res = xmalloc(sizeof(ast_t));
-    lnum(res) = (unsigned)yylineno;
+    lnum(res) = (unsigned)lineNum;
     tag(res) = tag;
     sv(res) = str;
     return res;
@@ -22,7 +27,7 @@ ast_t *newLeafString(unsigned tag, char *str) {
 // Hoja double
 ast_t *newLeafNum(unsigned tag, double dval) {
     ast_t *res = xmalloc(sizeof(ast_t));
-    lnum(res) = (unsigned)yylineno;
+    lnum(res) = (unsigned)lineNum;
     tag(res) = tag;
     dv(res) = dval;
     return res;
@@ -31,7 +36,7 @@ ast_t *newLeafNum(unsigned tag, double dval) {
 // Nodo (padre de l y r)
 ast_t *newNode(unsigned tag, ast_t *l, ast_t *r) {
     ast_t *res = xmalloc(sizeof(ast_t));
-    lnum(res) = (unsigned)yylineno;
+    lnum(res) = (unsigned)lineNum;
     tag(res) = tag;
     left(res) = l;
     right(res) = r;
