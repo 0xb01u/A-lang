@@ -3,7 +3,7 @@
  * @Year: 2020
  */
 
-#include "astree.h"
+#include "ast.h"
 #include "symtab.h"
 
 #include <math.h>
