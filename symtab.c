@@ -8,7 +8,7 @@
  *
  */
 #include "symtab.h"
-#include "exits.h"
+#include "autils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +33,7 @@ static symbol *symTab = NULL;
 /* Rellenar la tabla con entradas vacías */
 static void init()
 {
-	symTab = (symbol *)malloc(sizeof(symbol) * size);
+	mallocCheck(symTab, sizeof(symbol) * size);
 	memset(symTab, 0, sizeof(symbol) * (size_t)size);
 }
 

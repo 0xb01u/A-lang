@@ -15,7 +15,7 @@ extern char programName[];
 
 ast_t *newLeafString(unsigned tag, char *str)
 {
-	ast_t *res = (ast_t *)malloc(sizeof(ast_t));
+	mallocCheck(ast_t *res, sizeof(ast_t));
 	lnum(res) = (unsigned)lineNum;
 	tag(res) = tag;
 	sv(res) = str;
@@ -25,7 +25,7 @@ ast_t *newLeafString(unsigned tag, char *str)
 
 ast_t *newLeafNum(unsigned tag, double dval)
 {
-	ast_t *res = (ast_t *)malloc(sizeof(ast_t));
+	mallocCheck(ast_t *res, sizeof(ast_t));
 	lnum(res) = (unsigned)lineNum;
 	tag(res) = tag;
 	dv(res) = dval;
@@ -34,7 +34,7 @@ ast_t *newLeafNum(unsigned tag, double dval)
 
 ast_t *newNode(unsigned tag, ast_t *l, ast_t *r)
 {
-	ast_t *res = (ast_t *)malloc(sizeof(ast_t));
+	mallocCheck(ast_t *res, sizeof(ast_t));
 	lnum(res) = (unsigned)lineNum;
 	tag(res) = tag;
 	left(res) = l;

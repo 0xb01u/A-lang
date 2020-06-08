@@ -100,7 +100,7 @@ ID		{
 			}
 			/*Si no es una palabra clave y lo devuelve como identificador*/
 			yystr(yylval) = sdup(yytext);
-			yyFlag(yylval) = fIDENT;
+			yyFlag(yylval) = ID_id;
 
 			return ID;
 		}
@@ -114,14 +114,14 @@ NUMBER	{		/*Se lee el numero entero y se castea a double*/
 			long int li;
 			sscanf(yytext, "%d", &li);
 			yyFloat(yylval) = (double)li;
-			yyFlag(yylval) = fFLOAT;
+			yyFlag(yylval) = REAL_id;
 
 			return FLOAT;
 		}
 
 FLOAT		{	/*Se lee el numero decimal*/
 			sscanf(yytext, "%lf", &(yyFloat(yylval)));
-			yyFlag(yylval) = fFLOAT;
+			yyFlag(yylval) = REAL_id;
 
 			return FLOAT;
 
@@ -129,7 +129,7 @@ FLOAT		{	/*Se lee el numero decimal*/
 
 STR_START	{
 			yyStr(yylval) = readStr();
-			yyFlag(yylval) = fSTR;
+			yyFlag(yylval) = STR_id;
 			return STR;
 		}
 
