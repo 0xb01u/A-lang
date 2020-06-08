@@ -46,6 +46,7 @@ static ast_t ast = NULL;
 %token <S> FLOAT
 %token <s> STR
 
+%term WHILE 
 %type <s> PROGRAM PROGRAM_ELEMENT SENTENCE EXPR
 
 %%
@@ -114,7 +115,19 @@ SENTENCE
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(READ, newLeafString(STR, $2.u.string), newLeafString(ID, $3.u.string))
-	};
+	}
+	| WHILE EXPR DEL_BL EXPR DEL_BL '\n'
+   	 {
+	$$.type = AST_NODE;
+	$$.u.node = newNode(WHILE, $2.u.node, $4.u.node);
+    	}
+	| IF EXPR DEL_BL EXPR DEL_BL ELSE DEL_BL EXPR DEL_BL '\n'
+   	 {
+	$$.type = AST_NODE;
+	$$.u.node = newNode(IF, $2.u.node, $4.u.node);
+	$$.u.node = newNode(ELSE, $2.u.node, $8.u.node);
+    	};
+
 
 EXPR
 	: EXPR EQ EXPR
@@ -167,11 +180,11 @@ EXPR
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode('^', $1.u.node, $3.u.node);
 	}
-    | EXPR DIV EXPR
-    {
+    	| EXPR DIV EXPR
+    	{
       	$$.type = AST_NODE_id;
       	$$.u.node = newNode(DIV, $1.u.node, $3.u.node);
-    }
+   	 }
 	| '+' EXPR %prec UNARY
 	{
 		$$ = $2;
@@ -214,7 +227,10 @@ EXPR
     {
       	$$.type = AST_NODE_id;
       	$$.u.node = newNode(LN, $3.u.node, NULL);
-    };
+    }
+    ;
+
+	
 
 %%
 
@@ -264,21 +280,6 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-/*
- ______
-<      \
-<.     .\ O
-|  \______
-<\O____/
- /     \
->       <
-
-
-TODO
-Donehre ASCII
-
-
-*/
 
 
 
