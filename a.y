@@ -33,13 +33,20 @@ static ast_t ast = NULL;
 	} s;
 }
 
-// TODO: Operadores lógicos.
+%nonassoc EQ NE LT GT
 
 %left '+' '-'
-%left '*' '/'
+%left '*' '/' '%' DIV
 
 %right '^'
 %nonassoc UNARY
+
+%token <s> ID
+%term PRINT READ SIN COS TAN LN
+%token <S> FLOAT
+%token <s> STR
+
+%type <s> PROGRAM PROGRAM_ELEMENT SENTENCE EXPR
 
 %%
 
@@ -71,7 +78,7 @@ PROGRAM_ELEMENT
 	};
 
  /* Sentencias */
-SENTENCIA
+SENTENCE
 	/* Asignación */
 	: ID '=' EXPR
 	{
@@ -108,7 +115,6 @@ SENTENCIA
 		$$.type = AST_NODE;
 		$$.u.node = newNode(READ, newLeafString(STR, $2.u.string), newLeafString(ID, $3.u.string))
 	};
-	/* TODO: IF ELSE WHILE FOR... */
 
 EXPR
 	: EXPR EQ EXPR
@@ -131,16 +137,6 @@ EXPR
 		$$.type = AST_NODE;
 		$$.u.node = newNode(GT, $1.u.node, $3.u.node);
 	}
-	/*| EXPR AND EXPR
-	{
-		$$.type = AST_NODE;
-		$$.u.node = newNode(AND, $1.u.node, $3.u.node);
-	}
-	| EXPR OR EXPR
-	{
-		$$.type = AST_NODE;
-		$$.u.node = newNode(OR, $1.u.node, $3.u.node);
-	}*/
 	| EXPR '+' EXPR
 	{
 		$$.type = AST_NODE;
@@ -171,6 +167,11 @@ EXPR
 		$$.type = AST_NODE;
 		$$.u.node = newNode('^', $1.u.node, $3.u.node);
 	}
+    | EXPR DIV EXPR
+    {
+      	$$.type = AST_NODE;
+      	$$.u.node = newNode(DIV, $1.u.node, $3.u.node);
+    }
 	| '+' EXPR %prec UNARY
 	{
 		$$ = $2;
@@ -184,40 +185,35 @@ EXPR
 	{
 		$$ = $2;
 	}
-    | SIN EXPR
+    | FLOAT
     {
       	$$.type = AST_NODE;
-      	$$.u.node = newNode(SIN,$2.u.node,NULL);
-    }
-    | COS EXPR
-    {
-      	$$.type = AST_NODE;
-      	$$.u.node = newNode(COS,$2.u.node,NULL);
-    }
-    | TAN EXPR
-    {
-      	$$.type = AST_NODE;
-      	$$.u.node = newNode(TAN,$2.u.node,NULL);
-    }
-    | LN EXPR
-    {
-      	$$.type = AST_NODE;
-      	$$.u.node = newNode(LN,$2.u.node,NULL);
-    }
-    | EXPR DIV EXPR
-    {
-      	$$.type = AST_NODE;
-      	$$.u.node = newNode(DIV,$1.u.node,$3.u.node);
+      	$$.u.node = newLeafNum(FLOAT,$1.u.real_value);
     }
     | ID
     {
       	$$.type = AST_NODE;
       	$$.u.node = newLeafString(ID,$1.u.string);
     }
-    | FLOAT
+    | SIN '(' EXPR ')'
     {
       	$$.type = AST_NODE;
-      	$$.u.node = newLeafNum(FLOAT,$1.u.real_value);
+      	$$.u.node = newNode(SIN, $3.u.node, NULL);
+    }
+    | COS '(' EXPR ')'
+    {
+      	$$.type = AST_NODE;
+      	$$.u.node = newNode(COS, $3.u.node, NULL);
+    }
+    | TAN '(' EXPR ')'
+    {
+      	$$.type = AST_NODE;
+      	$$.u.node = newNode(TAN, $3.u.node, NULL);
+    }
+    | LN '(' EXPR ')'
+    {
+      	$$.type = AST_NODE;
+      	$$.u.node = newNode(LN, $3.u.node, NULL);
     };
 
 %%

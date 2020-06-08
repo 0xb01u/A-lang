@@ -95,12 +95,12 @@ ID		{
 			
 			/*Recorre el listado de palabras clave para ver si la introducida lo es*/
 			while (i<KWORDSN && r<0) {
-				if ((r=strcmp(keyWords[i],yytext))==0) return keyCodes[i];
+				if ((r = strcmp(keyWords[i],yytext)) == 0) return keyCodes[i];
 				++i;
 			}
 			/*Si no es una palabra clave y lo devuelve como identificador*/
-			yystr(yylval)=sdup(yytext);
-			yyFlag(yylval)=fIDENT;
+			yystr(yylval) = sdup(yytext);
+			yyFlag(yylval) = fIDENT;
 
 			return ID;
 		}
@@ -151,8 +151,8 @@ OP_LOG		{
 			}
 		}
 		
-		{
-			printf("%s(%d): Caracter inesperado %c\n", programName, lineNum, yytext[0]);
+.		{
+			fprintf(stderr, "%s(%d): error -- Caracter inesperado %c\n", programName, lineNum, yytext[0]);
 		}
 
 %%
@@ -162,7 +162,7 @@ static void lower(char *s) {
 	
 	while(l>0) {
 		--l;
-		if (s[l]>='A' && s[l]<='Z') s[l] = s[l]+'a' - 'A';
+		if (s[l] >= 'A' && s[l] <= 'Z') s[l] += ('a' - 'A');
 	}
 }
 
