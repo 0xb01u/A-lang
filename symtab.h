@@ -4,7 +4,7 @@
  * Curso 2019-2020
  */
 
-enum symbolType = { VOID, REAL };	// TODO: tipos en función de los lexemas.
+enum symbolType { VOID, REAL };	// TODO: tipos en función de los lexemas.
 typedef enum symbolType symbol_t;
 
 typedef struct symbol_s {
@@ -13,3 +13,6 @@ typedef struct symbol_s {
 		double real;
 	} value;
 } sym_value;
+
+sym_value get(char *id);
+void edit(char *id, sym_value value);

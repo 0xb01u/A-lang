@@ -10,6 +10,7 @@
 #include "symtab.h"
 #include "exits.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -25,9 +26,16 @@ typedef struct {
 	bool used;
 	char *id;
 	sym_value value;
-} symbol_t;
+} symbol;
 
-static symbol_t *symTab = NULL;
+static symbol *symTab = NULL;
+
+/* Rellenar la tabla con entradas vacías */
+static void init()
+{
+	symTab = (symbol *)malloc(sizeof(symbol) * size);
+	memset(symTab, 0, sizeof(symbol) * (size_t)size);
+}
 
 /* Función de dispersión para un identificador (String) */
 static int hash(char *s)
@@ -75,7 +83,7 @@ static int freePos(char *id)
 	int pos = first(id);
 	while (strcmp(id, symTab[pos].id) != 0 && !symTab[pos].used)
 	{
-		step(id. &pos);
+		step(id, &pos);
 	}
 
 	return pos;
@@ -87,18 +95,17 @@ static bool resize()
 	if (size/symbols >= 2) return false;
 
 	size *= 2;
-	symbol_t *tmp = symTab;
-	symTab = (symbol_t *)malloc(sizeof(symbol_t) * (size_t)size);
-	memset(symTab, 0, sizeof(symbol_t) * (size_t)size);
+	symbol *tmp = symTab;
+	init();
 
 	for (int i = 0; i < size/2; i++)
 	{
 		if (tmp[i].used)
 		{
-			int pos = freePos(tmp[i].id);
-			symTab[pos].used = true;
-			strcpy(&symTab[pos].id, tmp[i].id);
-			symTab[pos].value = tmp[i].value;
+			int index = freePos(tmp[i].id);
+			symTab[index].used = true;
+			strcpy(symTab[index].id, tmp[i].id);
+			symTab[index].value = tmp[i].value;
 		}
 	}
 
@@ -110,13 +117,13 @@ static bool resize()
 /* Función para obtener el valor de un símbolo de la tabla */
 sym_value get(char *id)
 {
-	int pos = pos(id);
-	if (pos == SYMTAB_NOT_FOUND)
+	int index = pos(id);
+	if (index == SYMTAB_NOT_FOUND)
 	{
 		fprintf(stderr, "%s(%d) error -- identificador no encotrado: %s\n", programName, lineNum, id);
 		exit(SYMTAB_NOT_FOUND);
 	}
-	return symTab[pos].value;
+	return symTab[index].value;
 }
 
 /* Función para cambiar una entrada de la tabla de símbolos */
@@ -124,23 +131,16 @@ void edit(char *id, sym_value value)
 {
 	if (symbols == 0) init();
 
-	int pos = pos(id);
-	if (pos == SYMTAB_NOT_FOUND)
+	int index = pos(id);
+	if (index == SYMTAB_NOT_FOUND)
 	{
 		symbols++;
 		resize();
 
-		pos = freePos(id);
-		symTab[pos].used = true;
-		strcpy(&symTab[pos].id, id);
+		index = freePos(id);
+		symTab[index].used = true;
+		strcpy(symTab[index].id, id);
 	}
 
-	symTab[pos].value = value;
-}
-
-/* Rellenar la tabla con entradas vacías */
-static void init()
-{
-	symTab = (symbol_t *)malloc(sizeof(symbol_t) * size);
-	memset(symTab, 0, sizeof(symbol_t) * (size_t)size);
+	symTab[index].value = value;
 }
