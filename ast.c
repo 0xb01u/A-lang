@@ -225,21 +225,24 @@ static void proc(ast_t *root)
 				evaluate(right(root));	
 			}	
 		}
-	break;
+		break;
 
 	case IF:
-		if (right(root) == NULL)
+		
+		if(expr(left(root)))
 		{
-			// TODO
+			evaluate(right(root));
 		}
-		else
+	
+		break;
+	case ELSE:
+
+		if(!(expr(left(root))))
 		{
-		if(left(root))
-		{
-			right(root);
+			evaluate(right(root));
 		}
-	}
-	break;
+	
+		break;
 
 		default:
 
