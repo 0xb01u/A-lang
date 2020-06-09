@@ -66,7 +66,8 @@ ID		({LETTER}({LETTER}|{DIGIT})*)
 SEPAR		([\n])	
 
  /*Delimitador de bloques*/	
-DEL_BL		([{}])			
+DEL_BL_A		([{])	
+DEL_BL_C		([}])			
 
  /*Espacios en blanco*/
 WSPC		([ \t\f\r])
