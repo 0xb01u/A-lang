@@ -99,8 +99,9 @@ ID		{
 				++i;
 			}
 			/*Si no es una palabra clave y lo devuelve como identificador*/
-			yystr(yylval) = sdup(yytext);
-			yyFlag(yylval) = ID_id;
+			mallocCheck(yylval.s.u.string, strlen(yytext) + 1);
+			strcpy(yylval.s.u.string, yytext);
+			yylval.s.type = ID_id;
 
 			return ID;
 		}
@@ -113,23 +114,23 @@ SEPAR		{	/*Salto de linea*/
 NUMBER	{		/*Se lee el numero entero y se castea a double*/
 			long int li;
 			sscanf(yytext, "%d", &li);
-			yyFloat(yylval) = (double)li;
-			yyFlag(yylval) = REAL_id;
+			yylval.s.u.real_value = (double)li;
+			yylval.s.type = REAL_id;
 
 			return FLOAT;
 		}
 
 FLOAT		{	/*Se lee el numero decimal*/
-			sscanf(yytext, "%lf", &(yyFloat(yylval)));
-			yyFlag(yylval) = REAL_id;
+			sscanf(yytext, "%lf", &yylval.s.u.real_value);
+			yylval.s.type = REAL_id;
 
 			return FLOAT;
 
 		}
 
 STR_START	{
-			yyStr(yylval) = readStr();
-			yyFlag(yylval) = STR_id;
+			yylval.s.u.string = readStr();
+			yylval.s.type = STR_id;
 			return STR;
 		}
 
@@ -157,7 +158,8 @@ OP_LOG		{
 
 %%
 
-static void lower(char *s) {
+static void lower(char *s)
+{
 	unsigned l = strlen(s);
 	
 	while(l>0) {
@@ -166,7 +168,8 @@ static void lower(char *s) {
 	}
 }
 
-static void addStr(char **s, unsigned long *len, char c) {
+static void addStr(char **s, unsigned long *len, char c)
+{
 	char buf[2];
 	buf[0] = c;
 	buf[1] = '\0';
@@ -181,7 +184,8 @@ static void addStr(char **s, unsigned long *len, char c) {
 }
 
 
-static char *readStr(void) {
+static char *readStr(void)
+{
 	int c;
 	char buff[257];
 	unsigned long len = 256;
