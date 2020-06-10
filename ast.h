@@ -10,10 +10,10 @@
 /* Tipo "nodo del ast" */
 typedef struct ast_s {
 	unsigned tag;
-	unsigned lineN;
+	unsigned lineNum;
 	union {
 		struct {
-			ast_s *left, *right;
+			ast_t *left, *right;
 		} child;
 		char *str;
 		double real;

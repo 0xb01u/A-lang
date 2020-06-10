@@ -12,13 +12,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-extern int lineNum;
+extern int yylineno;
 extern char programName[];
 
 ast_t *newLeafString(unsigned tag, char *str)
 {
 	mallocCheck(ast_t *res, sizeof(ast_t));
-	res->lineN = (unsigned)lineNum;
+	res->lineNum = (unsigned)yylineno;
 	res->tag = tag;
 	res->u.str = str;
 	return res;
@@ -28,7 +28,7 @@ ast_t *newLeafString(unsigned tag, char *str)
 ast_t *newLeafNum(unsigned tag, double dval)
 {
 	mallocCheck(ast_t *res, sizeof(ast_t));
-	res->lineN = (unsigned)lineNum;
+	res->lineNum = (unsigned)yylineno;
 	res->tag = tag;
 	res->u.real = dval;
 	return res;
@@ -37,7 +37,7 @@ ast_t *newLeafNum(unsigned tag, double dval)
 ast_t *newNode(unsigned tag, ast_t *l, ast_t *r)
 {
 	mallocCheck(ast_t *res, sizeof(ast_t));
-	res->lineN = (unsigned)lineNum;
+	res->lineNum = (unsigned)yylineno;
 	res->tag = tag;
 	res->u.child.left = l;
 	res->u.child.right = r;

@@ -10,10 +10,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ast.c"
 #include "autils.h"
+#include "ast.c"
+#include "ac.syn.h"
 
-extern int lineNum;
+extern int yylineno;
 
 /* Árbol de sintaxis */
 static ast_t ast = NULL;
@@ -28,7 +29,7 @@ static ast_t ast = NULL;
 			double real_value;	/* Como número real */
 			long int_value;		/* Como número entero */
 			char *string;		/* Como cadena de caracteres */
-			struct ast_s *node;
+			struct ast_t *node;
 		} u;
 	} s;
 }
@@ -45,9 +46,9 @@ static ast_t ast = NULL;
 %term PRINT READ SIN COS TAN LN
 %token <S> FLOAT
 %token <s> STR
-%term WHILE IF ELSE
+%term WHILE IF ELSE DEL_BL_A DEL_BL_C
 
-%type <s> PROGRAM PROGRAM_ELEMENT SENTENCE EXPR BLOCK
+%type <s> PROGRAM BLOCK SENTENCE_GROUP SENTENCE EXPR
 
 %%
 
@@ -93,7 +94,7 @@ SENTENCE_GROUP
 		$$ = $1;
 	}
 	/* Grupo de sentencias y una sentencia (recursivo) */
-	| SENTENCE_GROUP SENTECE '\n'
+	| SENTENCE_GROUP SENTENCE '\n'
 	{
 		$$.type = AST_NODE_id;
 		$$.U.node = newNode('s', NULL, $2.u.node);
@@ -264,7 +265,7 @@ char programName[256] = "";
 /* Gestión de errores */
 int yyerror(char *str)
 {
-	printf("%s(%d): error -- %s\n", programName, lineNum, str);
+	printf("%s(%d): error -- %s\n", programName, yylineno, str);
 	return 1;
 }
 

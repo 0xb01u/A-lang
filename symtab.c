@@ -8,16 +8,16 @@
  * TABLA DE SÍMBOLOS PARA EL INTÉRPRETE
  *
  */
-#include "symtab.h"
-#include "autils.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <stdbool.h>
 
-extern int lineNum;
+#include "symtab.h"
+#include "autils.h"
+
+extern int yylineno;
 extern char programName[];
 
 static int size = 256;	/* Tamaño de la tabla */
@@ -121,7 +121,7 @@ symbol get(char *id)
 	int index = pos(id);
 	if (index == SYMTAB_NOT_FOUND)
 	{
-		fprintf(stderr, "%s(%d) error -- identificador no encotrado: %s\n", programName, lineNum, id);
+		fprintf(stderr, "%s(%d) error -- identificador no encotrado: %s\n", programName, yylineno, id);
 		exit(SYMTAB_NOT_FOUND);
 	}
 	return symTab[index].value;

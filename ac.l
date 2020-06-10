@@ -9,7 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define KWORDSN = 10
+#include "autils.h"
+#include "ac.syn.h"
+
+#define KWORDSN 10
 
 char *keyWords[KWORDSN] = {
 	"read"
@@ -39,6 +42,9 @@ unsigned keyCodes[KWORDSN] = {
 int yywrap(void) { return 1; }
 
 extern char programName[];
+
+static char *readStr();
+static void addStr(char **s, unsigned long *len, char c);
 
 %}
 
@@ -81,8 +87,14 @@ COMM ("/*"[.|"\n"]*"*/")
 
 %%
 
-(WSPC | LINE_COMM | COMM)	;
+WSPC|LINE_COMM	;
 
+COMM	{	/*Cuenta las líneas que ocupa el comentario*/
+			for (int i = 0; i < strlen(yytext); i++)
+			{
+				if (yytext[0] == '\n') yylineno++;
+			}
+		}
 
 ID		{	
 			unsigned i = 0;
@@ -102,14 +114,14 @@ ID		{
 			return ID;
 		}
 
-SEPAR	{	/*Salto de linea*/
-			++lineNum;
+"\n"	{	/*Salto de linea*/
+			++yylineno;
 			return yytext[0];
 		}
 
 NUMBER	{		/*Se lee el numero entero y se castea a double*/
 			long int li;
-			sscanf(yytext, "%d", &li);
+			sscanf(yytext, "%ld", &li);
 			yylval.s.u.real_value = (double)li;
 			yylval.s.type = REAL_id;
 
@@ -149,7 +161,7 @@ OP_LOG	{
 		}
 		
 .		{
-			fprintf(stderr, "%s(%d): error -- Caracter inesperado %c\n", programName, lineNum, yytext[0]);
+			fprintf(stderr, "%s(%d): error -- Caracter inesperado %c\n", programName, yylineno, yytext[0]);
 		}
 
 %%
@@ -161,7 +173,7 @@ static void addStr(char **s, unsigned long *len, char c)
 	buf[1] = '\0';
 
 	if (strlen(*s) >= *len) {
-		char ss[len + 1025];
+		char *ss = (char *)malloc(sizeof(char) * (*len + 1025));
 		strcpy(ss, *s);
 		*s = ss;
 		*len += 1024;
@@ -170,10 +182,10 @@ static void addStr(char **s, unsigned long *len, char c)
 }
 
 
-static char *readStr(void)
+static char *readStr()
 {
 	int c;
-	char buff[257];
+	char *buff = (char *)malloc(sizeof(char) * 257);
 	unsigned long len = 256;
 	
 	buff[0] = '\0';
@@ -181,7 +193,7 @@ static char *readStr(void)
 	do {
 		c == input();
 		if (c < ' ')
-			fprintf(stderr, "%s(%d): error -- Simbolo no esperado en cadena de caracteres: %c\n", programName, lineNum, c);
+			fprintf(stderr, "%s(%d): error -- Simbolo no esperado en cadena de caracteres: %c\n", programName, yylineno, c);
 		if (c == '"') break;
 		if (c == '\\')
 		{

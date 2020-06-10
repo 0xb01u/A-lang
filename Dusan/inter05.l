@@ -69,9 +69,9 @@ STRSTART  (["])   /* Comienzo de cadena de caracteres: comillas dobles " /**/
 
 %%
 
-{WSPC}              ; /* nothing to do, white space */
+WSPC              ; /* nothing to do, white space */
 
-{IDENT}             {
+IDENT               {
                         unsigned i = 0;
                         int r=-1;
                         char *res;
@@ -91,13 +91,13 @@ STRSTART  (["])   /* Comienzo de cadena de caracteres: comillas dobles " /**/
                         return IDENT;   /* Se devuelve que se ha leído un identificador */
                     }
 
-{COMSEP}            {
+COMSEP              {
                         /* Salto de línea: se aumenta el número de línea */
                         ++yylineno; /* yylineno se define aquí (en este fichero) */
                         return yytext[0]; /* Se devuelve el salto de línea */
                     }
 
-{DIGITS}            {
+DIGITS              {
                         /* Se lee el número entero */
                         long int li;
                         sscanf(yytext,"%ld",&li);
@@ -108,7 +108,7 @@ STRSTART  (["])   /* Comienzo de cadena de caracteres: comillas dobles " /**/
                         return FLOAT;
                     }
                     
-{FLOAT}             {
+FLOAT               {
                         /* Se lee el número decimal */
                         sscanf(yytext,"%lf",&( yyFloat(yylval) ));
                         yyFlag(yylval) = fFLOAT;
@@ -116,7 +116,7 @@ STRSTART  (["])   /* Comienzo de cadena de caracteres: comillas dobles " /**/
                         return FLOAT;
                     }
                     
-{STRSTART}          {
+STRSTART            {
                       /* Se lee la String */
                       yyStr(yylval) = readStr();
                       yyFlag(yylval) = fSTR;
@@ -124,9 +124,9 @@ STRSTART  (["])   /* Comienzo de cadena de caracteres: comillas dobles " /**/
                       return STR;
                     }
                     
-{OP1}               return yytext[0]; /* Se lee el operador aritmético */
+OP1                 return yytext[0]; /* Se lee el operador aritmético */
 
-{OP2}               {
+OP2                 {
                         switch (yytext[0]) {  /* Se lee el operador lógico */
                             case '=':
                                 return EQ;
