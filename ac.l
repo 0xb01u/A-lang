@@ -1,6 +1,7 @@
 /**
- * @Autores: Manuel de Castro Caballero, María Ruiz Molina, Andrés Trigueros Vega
- * @Curso: 2019 - 2020
+ * Compilador de A - Proyecto final GLF
+ * Manuel de Castro Caballero, María Ruiz Molina, Andrés Trigueros Vega
+ * Curso 2019-2020
  */
 
 %{
@@ -70,7 +71,7 @@ OP_AR		([+*-/%=()^])
 OP_LOG		("=="|"!="|"<"|">")
 
  /*Comienzo de cadena de caracteres*/
-STR_START	(["]) /*"/**/
+STR_START	(["])
 
  /* Comentario de línea */
 LINE_COMM	("//".*"\n")

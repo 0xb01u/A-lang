@@ -1,6 +1,7 @@
-/*
- * @Author: Manuel de Castro Caballero, María Ruiz Molina, Andrés Trigueros Vega
- * @Year: 2020
+/**
+ * Compilador de A - Proyecto final GLF
+ * Manuel de Castro Caballero, María Ruiz Molina, Andrés Trigueros Vega
+ * Curso 2019-2020
  */
 
 #include "ast.h"

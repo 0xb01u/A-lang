@@ -1,8 +1,9 @@
 /**
- * Proyecto final GLF
+ * Compilador de A - Proyecto final GLF
  * Manuel de Castro Caballero, María Ruiz Molina, Andrés Trigueros Vega
  * Curso 2019-2020
  */
+
 /*
  * TABLA DE SÍMBOLOS PARA EL INTÉRPRETE
  *
@@ -25,16 +26,16 @@ static int symbols = 0;	/* Número de entradas llenas */
 typedef struct {
 	bool used;
 	char *id;
-	sym_value value;
-} symbol;
+	symbol value;
+} entry;
 
-static symbol *symTab = NULL;
+static entry *symTab = NULL;
 
 /* Rellenar la tabla con entradas vacías */
 static void init()
 {
-	mallocCheck(symTab, sizeof(symbol) * size);
-	memset(symTab, 0, sizeof(symbol) * (size_t)size);
+	mallocCheck(symTab, sizeof(entry) * size);
+	memset(symTab, 0, sizeof(entry) * (size_t)size);
 }
 
 /* Función de dispersión para un identificador (String) */
@@ -95,7 +96,7 @@ static bool resize()
 	if (size/symbols >= 2) return false;
 
 	size *= 2;
-	symbol *tmp = symTab;
+	entry *tmp = symTab;
 	init();
 
 	for (int i = 0; i < size/2; i++)
@@ -115,7 +116,7 @@ static bool resize()
 }
 
 /* Función para obtener el valor de un símbolo de la tabla */
-sym_value get(char *id)
+symbol get(char *id)
 {
 	int index = pos(id);
 	if (index == SYMTAB_NOT_FOUND)
@@ -127,7 +128,7 @@ sym_value get(char *id)
 }
 
 /* Función para cambiar una entrada de la tabla de símbolos */
-void edit(char *id, sym_value value)
+void edit(char *id, symbol value)
 {
 	if (symbols == 0) init();
 

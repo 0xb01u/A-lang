@@ -1,6 +1,7 @@
-/*
- * CÓDIGOS DE SALIDA PARA EL INTÉRPRETE.
- *
+/**
+ * Compilador de A - Proyecto final GLF
+ * Manuel de Castro Caballero, María Ruiz Molina, Andrés Trigueros Vega
+ * Curso 2019-2020
  */
 
 /* Identificadores de tokens */

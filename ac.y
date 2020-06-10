@@ -1,5 +1,5 @@
 /**
- * Proyecto final GLF
+ * Compilador de A - Proyecto final GLF
  * Manuel de Castro Caballero, María Ruiz Molina, Andrés Trigueros Vega
  * Curso 2019-2020
  */
@@ -143,6 +143,7 @@ SENTENCE
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(WHILE, $3.u.node, $5.u.node);
 	}
+	/* TODO: FOR? */
 	| IF '(' EXPR ')' BLOCK ELSE BLOCK
 	{
 		$$.type = AST_NODE_id;
