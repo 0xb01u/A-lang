@@ -11,7 +11,7 @@
 #include <string.h>
 
 #include "ast.c"
-#include "exits.h"
+#include "autils.h"
 
 extern int lineNum;
 
