@@ -47,7 +47,7 @@ ast_t *newRoot(unsigned tag, ast_t *lst, ast_t *nd) {
 		if (nd == NULL) {
 			return NULL;
 		}
-		return mkNd(tag,nd,NULL);
+		return mkNd(tag, nd, NULL);
 	}
 	if (nd == NULL) {
 		return lst;
@@ -228,26 +228,22 @@ static void proc(ast_t *root)
 		break;
 
 	case IF:
-		
 		if(expr(left(root)))
 		{
 			evaluate(right(root));
-		}
-	
+		}	
 		break;
-	case ELSE:
 
+	case ELSE:
 		if(!(expr(left(root))))
 		{
 			evaluate(right(root));
-		}
-	
+		}	
 		break;
 
-		default:
-
-			fprintf(stderr, "%s(%d): error - Etiqueta desconocida en expresión AST %u\n", programName, lnum(root), tag(root));
-			break;
+	default:
+		fprintf(stderr, "%s(%d): error -- Etiqueta desconocida en expresión AST %u\n", programName, lnum(root), tag(root));
+	break;
 	}
 }
 

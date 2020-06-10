@@ -45,39 +45,60 @@ static ast_t ast = NULL;
 %term PRINT READ SIN COS TAN LN
 %token <S> FLOAT
 %token <s> STR
+%term WHILE IF ELSE
 
-%term WHILE 
-%type <s> PROGRAM PROGRAM_ELEMENT SENTENCE EXPR
-%type <s> BLOCK
+%type <s> PROGRAM PROGRAM_ELEMENT SENTENCE EXPR BLOCK
 
 %%
 
  /* Producciones de un programa */
 PROGRAM
-	/* Un único elemento de programa */
-	: PROGRAM_ELEMENT
+	/* Un único bloque de programa */
+	: BLOCK
 	{
-		ast = newRoot('l', ast, $1.u.node);
+		ast = newRoot('r', ast, $1.u.node);
 	}
-	/* Varios elementos de programa */
-	| PROGRAM PROGRAM_ELEMENT
+	/* Varios bloques de programa */
+	| PROGRAM BLOCK
 	{
-		ast = newRoot('l', ast, $2.u.node);
+		ast = newRoot('r', ast, $2.u.node);
 	};
 
- /* Elementos de un programa */
-PROGRAM_ELEMENT
-	/* Sentencia */
+ /* Bloque de programa */
+BLOCK
+	/* Una sentencia */
 	: SENTENCE '\n'
 	{
-		$$ = $1;
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode('s', NULL, $1.u.node);
 	}
 	/* Sentencia vacía */
 	| '\n'
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = NULL;
-	};
+	}
+	/* Grupo de sentencias entre corchetes */
+	| DEL_BL_A SENTENCE_GROUP DEL_BL_C
+	{
+		$$ = $2;
+	}
+	;
+
+ /* Grupo de sentencias */
+SENTENCE_GROUP
+	/* Bloque de sentencias */
+	: BLOCK
+	{
+		$$ = $1;
+	}
+	/* Grupo de sentencias y una sentencia (recursivo) */
+	| SENTENCE_GROUP SENTECE '\n'
+	{
+		$$.type = AST_NODE_id;
+		$$.U.node = newNode('s', NULL, $2.u.node);
+	}
+	;
 
  /* Sentencias */
 SENTENCE
@@ -117,23 +138,22 @@ SENTENCE
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(READ, newLeafString(STR, $2.u.string), newLeafString(ID, $3.u.string))
 	}
-	| WHILE EXPR DEL_BL_A BLOCK DEL_BL_C '\n'
-   	 {
-	$$.type = AST_NODE_id;
-	$$.u.node = newNode(WHILE, $2.u.node, $4.u.node);
-    	}
-	| IF EXPR DEL_BL_A BLOCK DEL_BL_C ELSE DEL_BL_A BLOCK DEL_BL_C '\n'
-   	 {
-	$$.type = AST_NODE_id;
-	$$.u.node = newNode(IF, $2.u.node, $4.u.node);
-	$$.u.node = newNode(ELSE, $2.u.node, $8.u.node);
-    	}
-	| IF EXPR DEL_BL_A BLOCK DEL_BL_C '\n'
-   	 {
-	$$.type = AST_NODE_id;
-	$$.u.node = newNode(IF, $2.u.node, $4.u.node);
-    	};
-
+	| WHILE '(' EXPR ')' BLOCK
+	{
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(WHILE, $3.u.node, $5.u.node);
+	}
+	| IF '(' EXPR ')' BLOCK ELSE BLOCK
+	{
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(IF, $3.u.node, $5.u.node);
+		$$.u.node = newNode(ELSE, $3.u.node, $7.u.node);
+	}
+	| IF '(' EXPR ')' BLOCK
+	{
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(IF, $3.u.node, $5.u.node);
+	};
 
 EXPR
 	: EXPR EQ EXPR
@@ -186,11 +206,11 @@ EXPR
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode('^', $1.u.node, $3.u.node);
 	}
-    	| EXPR DIV EXPR
-    	{
-      	$$.type = AST_NODE_id;
-      	$$.u.node = newNode(DIV, $1.u.node, $3.u.node);
-   	 }
+	| EXPR DIV EXPR
+	{
+	  	$$.type = AST_NODE_id;
+	  	$$.u.node = newNode(DIV, $1.u.node, $3.u.node);
+   	}
 	| '+' EXPR %prec UNARY
 	{
 		$$ = $2;
@@ -204,60 +224,37 @@ EXPR
 	{
 		$$ = $2;
 	}
-    | FLOAT
-    {
-      	$$.type = AST_NODE_id;
-      	$$.u.node = newLeafNum(FLOAT,$1.u.real_value);
-    }
-    | ID
-    {
-      	$$.type = AST_NODE_id;
-      	$$.u.node = newLeafString(ID,$1.u.string);
-    }
-    | SIN '(' EXPR ')'
-    {
-      	$$.type = AST_NODE_id;
-      	$$.u.node = newNode(SIN, $3.u.node, NULL);
-    }
-    | COS '(' EXPR ')'
-    {
-      	$$.type = AST_NODE_id;
-      	$$.u.node = newNode(COS, $3.u.node, NULL);
-    }
-    | TAN '(' EXPR ')'
-    {
-      	$$.type = AST_NODE_id;
-      	$$.u.node = newNode(TAN, $3.u.node, NULL);
-    }
-    | LN '(' EXPR ')'
-    {
-      	$$.type = AST_NODE_id;
-      	$$.u.node = newNode(LN, $3.u.node, NULL);
-    }
-    ;
-BLOCK
-	: SENTENCE '\n'
-		{
-			$$.type = AST_NODE_id;
-			$$.u.node = newRoot(';', NULL, $1.u.ast);
-		}
-	| '\n'
-		{
-			$$.type = AST_NODE_id;
-			$$.u.node = NULL;
-		}
-	| BODY SENTENCE '\n'
-		{
-			$$.type = AST_NODE_id;
-			$$.u.node = newRoot(';', $1.u.ast, $2.u.ast);
-		}
-	| BODY '\n'
-		{
-			$$ = $1;
-		}
+	| FLOAT
+	{
+	  	$$.type = AST_NODE_id;
+	  	$$.u.node = newLeafNum(FLOAT,$1.u.real_value);
+	}
+	| ID
+	{
+	  	$$.type = AST_NODE_id;
+	  	$$.u.node = newLeafString(ID,$1.u.string);
+	}
+	| SIN '(' EXPR ')'
+	{
+	  	$$.type = AST_NODE_id;
+	  	$$.u.node = newNode(SIN, $3.u.node, NULL);
+	}
+	| COS '(' EXPR ')'
+	{
+	  	$$.type = AST_NODE_id;
+	  	$$.u.node = newNode(COS, $3.u.node, NULL);
+	}
+	| TAN '(' EXPR ')'
+	{
+	  	$$.type = AST_NODE_id;
+	  	$$.u.node = newNode(TAN, $3.u.node, NULL);
+	}
+	| LN '(' EXPR ')'
+	{
+	  	$$.type = AST_NODE_id;
+	  	$$.u.node = newNode(LN, $3.u.node, NULL);
+	}
 	;
-	
-	
 
 %%
 
@@ -306,8 +303,3 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
-
-
-
-
-

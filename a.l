@@ -48,39 +48,29 @@ LETTER		([_a-zA-Z])
 DIGIT		([0-9])
 NUMBER		({DIGIT}+)
 
- /*Exponente de float*/
-EXP		([eE][-+]?{NUMBER})
-
- /*Distintas formas de representacion de constantes tipo float*/
-FLOAT_DOT	({NUMBER}"."{NUMBER})
-FLOAT_EXP	({NUMBER}{EXP})
-FLOAT_DE	({NUMBER}"."{NUMBER}{EXP})	
- 
  /*Representacion tipo float*/
-FLOAT     	({FLOAT_DOT}|{FLOAT_EXP}|{FLOAT_DE})
+FLOAT     	(({NUMBER}"."{DIGIT}*)({DIGIT}*"."{NUMBER})
 
  /*Identificador*/
-ID		({LETTER}({LETTER}|{DIGIT})*)	 
-
- /*Separador de sentencias*/
-SEPAR		([\n])	
+ID		({LETTER}({LETTER}|{DIGIT})*)
 
  /*Delimitador de bloques*/	
-DEL_BL_A		([{])	
-DEL_BL_C		([}])			
+DEL_BL_A		(["{"{WSPC}*"\n"])
+DEL_BL_C		(["}"{WSPC}*"\n"])
+ /* DEL_BL_C_2????? */	
 
  /*Espacios en blanco*/
 WSPC		([ \t\f\r])
 WSCPS		({WSPC}+)
 
 /*Operadores aritmeticos*/
-OP_AR		([-+/*%=()^])
+OP_AR		([+*-/%=()^])
 
  /*Operadores logicos*/
 OP_LOG		("=="|"!="|"<"|">")
 
  /*Comienzo de cadena de caracteres*/
-STR_START	(["])/*"/**/
+STR_START	(["]) /*"/**/
 
 %%
 
@@ -211,23 +201,3 @@ static char *readStr(void)
 	} while(1);
 	return buff;
 }
-
-/*
- ______
-<      \
-<.     .\ O
-|  \______
-<\O____/
- /     \
->       <
-
-
-TODO
-Donehre ASCII
-
-
-*/
-
-
-
-
