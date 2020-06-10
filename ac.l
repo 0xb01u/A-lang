@@ -72,17 +72,21 @@ OP_LOG		("=="|"!="|"<"|">")
  /*Comienzo de cadena de caracteres*/
 STR_START	(["]) /*"/**/
 
+ /* Comentario de línea */
+LINE_COMM	("//".*"\n")
+
+ /* Comentarios del programa */
+COMM ("/*"[.|"\n"]*"*/")
+
 %%
 
-WSPC		;
+(WSPC | LINE_COMM | COMM)	;
 
 
 ID		{	
 			unsigned i = 0;
 			int r = -1;
 			char *res;
-			
-			lower(yytext);
 			
 			/*Recorre el listado de palabras clave para ver si la introducida lo es*/
 			while (i<KWORDSN && r<0) {
@@ -97,7 +101,7 @@ ID		{
 			return ID;
 		}
 
-SEPAR		{	/*Salto de linea*/
+SEPAR	{	/*Salto de linea*/
 			++lineNum;
 			return yytext[0];
 		}
@@ -111,7 +115,7 @@ NUMBER	{		/*Se lee el numero entero y se castea a double*/
 			return FLOAT;
 		}
 
-FLOAT		{	/*Se lee el numero decimal*/
+FLOAT	{	/*Se lee el numero decimal*/
 			sscanf(yytext, "%lf", &yylval.s.u.real_value);
 			yylval.s.type = REAL_id;
 
@@ -126,11 +130,11 @@ STR_START	{
 		}
 
 
-OP_AR		{
+OP_AR	{
 			return yytext[0];
 		}
 	
-OP_LOG		{
+OP_LOG	{
 			switch(yytext[0]) {
 				case '=':
 					return EQ;
@@ -148,16 +152,6 @@ OP_LOG		{
 		}
 
 %%
-
-static void lower(char *s)
-{
-	unsigned l = strlen(s);
-	
-	while(l>0) {
-		--l;
-		if (s[l] >= 'A' && s[l] <= 'Z') s[l] += ('a' - 'A');
-	}
-}
 
 static void addStr(char **s, unsigned long *len, char c)
 {
