@@ -16,9 +16,9 @@ extern char programName[];
 ast_t *newLeafString(unsigned tag, char *str)
 {
 	mallocCheck(ast_t *res, sizeof(ast_t));
-	lnum(res) = (unsigned)lineNum;
-	tag(res) = tag;
-	sv(res) = str;
+	res->lineN = (unsigned)lineNum;
+	res->tag = tag;
+	res->u.str = str;
 	return res;
 }
 
@@ -26,57 +26,49 @@ ast_t *newLeafString(unsigned tag, char *str)
 ast_t *newLeafNum(unsigned tag, double dval)
 {
 	mallocCheck(ast_t *res, sizeof(ast_t));
-	lnum(res) = (unsigned)lineNum;
-	tag(res) = tag;
-	dv(res) = dval;
+	res->lineN = (unsigned)lineNum;
+	res->tag = tag;
+	res->u.real = dval;
 	return res;
 }
 
 ast_t *newNode(unsigned tag, ast_t *l, ast_t *r)
 {
 	mallocCheck(ast_t *res, sizeof(ast_t));
-	lnum(res) = (unsigned)lineNum;
-	tag(res) = tag;
-	left(res) = l;
-	right(res) = r;
+	res->lineN = (unsigned)lineNum;
+	res->tag = tag;
+	res->u.child.left = l;
+	res->u.child.right = r;
 	return res;
 }
 
-ast_t *newRoot(unsigned tag, ast_t *lst, ast_t *nd) {
+ast_t *newRoot(unsigned tag, ast_t *lst, ast_t *nd)
+{
 	if (lst == NULL) {
 		if (nd == NULL) {
 			return NULL;
 		}
-		return mkNd(tag, nd, NULL);
+		return newNode(tag, nd, NULL);
 	}
 	if (nd == NULL) {
 		return lst;
 	}
 
 	ast_t *tmp = lst;
-	while (right(tmp) != NULL) {
-		tmp = right(tmp);
+	while (tmp->u.child.right != NULL) {
+		tmp = tmp->u.child.right;
 	}
-	right(tmp) = mkNd(tag,nd,NULL);
+	tmp->u.child.right = newNode(tag,nd,NULL);
 
 	return lst;
 }
 
-
-static double expr(ast_t *root) {	
-	switch (tag(root)) {		
-		case '?':			
-			if (expr(left(root)) != 0.0)
-			{				
-				return expr(left(right(root)));
-			}
-			else
-			{				
-				return expr(right(right(root)));
-			}		
-
+static double evaluateExpr(ast_t *root)
+{	
+	switch (root->tag)
+	{
 		case EQ:
-			if (expr(left(root)) == expr(right(root))) {
+			if (evaluateExpr(root->u.child.left) == evaluateExpr(root->u.child.right)) {
 				return 1.0;
 			}
 			else
@@ -85,7 +77,7 @@ static double expr(ast_t *root) {
 			}
 
 		case NE:
-			if (expr(left(root)) != expr(right(root)))
+			if (evaluateExpr(root->u.child.left) != evaluateExpr(root->u.child.right))
 			{
 				return 1.0;
 			}
@@ -95,7 +87,7 @@ static double expr(ast_t *root) {
 			}
 
 		case LT:
-			if (expr(left(root)) < expr(right(root)))
+			if (evaluateExpr(root->u.child.left) < evaluateExpr(root->u.child.right))
 			{
 				return 1.0;
 			}
@@ -105,7 +97,7 @@ static double expr(ast_t *root) {
 			}
 
 		case GT:
-			if (expr(left(root)) > expr(right(root)))
+			if (evaluateExpr(root->u.child.left) > evaluateExpr(root->u.child.right))
 			{
 				return 1.0;
 			}
@@ -115,134 +107,134 @@ static double expr(ast_t *root) {
 			}
 
 		case '+':
-			return expr(left(root)) + expr(right(root));
+			return evaluateExpr(root->u.child.left) + evaluateExpr(root->u.child.right);
 
 		case '-':			
-			if (left(root) == NULL)
+			if (root->u.child.left == NULL)
 			{
-				return - expr(right(root));
+				return - evaluateExpr(root->u.child.right);
 
 			}
 			else
 			{
-				return expr(left(root)) - expr(right(root));
+				return evaluateExpr(root->u.child.left) - evaluateExpr(root->u.child.right);
 			}
 
 		case '*':
-			return expr(left(root)) * expr(right(root));
+			return evaluateExpr(root->u.child.left) * evaluateExpr(root->u.child.right);
 
 		case '/':
-			return expr(left(root)) / expr(right(root));
+			return evaluateExpr(root->u.child.left) / evaluateExpr(root->u.child.right);
 
 		case '%':
-			return fmod(expr(left(root)), expr(right(root)));
+			return fmod(evaluateExpr(root->u.child.left), evaluateExpr(root->u.child.right));
 
 		case DIV:
-			return (int)(expr(left(root)) / expr(right(root))):
+			return (int)(evaluateExpr(root->u.child.left) / evaluateExpr(root->u.child.right)):
 
 		case '^':
-			return pow(expr(left(root)), expr(right(root)));
+			return pow(evaluateExpr(root->u.child.left), evaluateExpr(root->u.child.right));
 
 		
 		case FLOAT:
-			return dv(root);
+			return root->u.real;
 
 		case ID:
-			return read(sv(root));
+			return get(root->u.str);
 
 		case SIN:
-			return sin(expr(left(root)));
+			return sin(evaluateExpr(root->u.child.left));
 
 		case COS:
-			return cos(expr(left(root)));
+			return cos(evaluateExpr(root->u.child.left));
 
 		case TAN:
-			return tan(expr(left(root)));
+			return tan(evaluateExpr(root->u.child.left));
 
 		case LN:
-			return log(expr(left(root)));
+			return log(evaluateExpr(root->u.child.left));
 	   
 
 		default:
-			fprintf(stderr, "%s(%d): error -- Etiqueta desconocida en expresión AST %u\n", programName, lnum(root), tag(root));
-			break;
+			fprintf(stderr, "%s(%d): error -- Etiqueta desconocida en evaluateExpresión AST %u\n", programName, lnum(root), root)->tag;
+		break;
 	}
 }
 
 
 
-static void proc(ast_t *root)
+static void evaluateNode(ast_t *root)
 {
-	switch (tag(root))
+	switch (root)->tag
 	{
 		case '=':
-			insertModify(sv(left(root)), expr(right(root)));
+			edit(root->u.child.left->u.str, evaluateExpr(root->u.child.right));
 			break;
 
 		case PRINT:			
-			if (left(root) == NULL)
+			if (root->u.child.left == NULL)
 			{
-				printf("%g\n", expr(right(root)));
+				printf("%g\n", evaluateExpr(root->u.child.right));
 			
 			}
-			else if (right(root) == NULL)
+			else if (root->u.child.right == NULL)
 			{
-				puts(sv(left(root)));
+				puts(root->u.child.left->u.str);
 			}
 			else
 			{
-				printf("%s%g\n", sv(left(root)), expr(right(root)));
+				printf("%s%g\n", root->u.child.left->u.str, evaluateExpr(root->u.child.right));
 			}
 			break;
 
 		case READ:
-			if (left(root) == NULL)
+			if (root->u.child.left == NULL)
 			{
 				double rval;
 		  	 	scanf("%lf", &rval);
 		  	  
-				insertModify(sv(right(root)), rval);
+				edit(root->u.child.right->u.str, rval);
 			}
 			else
 			{
 				double rval;
-				printf("%s", sv(left(root)));
+				printf("%s", root->u.child.left->u.str);
 				scanf("%lf", &rval);
 
-				insertModify(sv(right(root)), rval);
+				edit(root->u.child.right->u.str, rval);
 			}
 		break;
  	
 	case WHILE:
-		if (right(root) == NULL)
+		if (root->u.child.right == NULL)
 		{
-			while (expr(left(root)));
+			while (evaluateExpr(root->u.child.left));
 		}
 		else
 		{
-			while (expr(left(root)))
+			while (evaluateExpr(root->u.child.left))
 			{
-				evaluate(right(root));	
+				evaluateNode(root->u.child.right);	
 			}	
 		}
 		break;
 
 	case IF:
-		if(expr(left(root)))
+		if(evaluateExpr(root->u.child.left))
 		{
-			evaluate(right(root));
+			evaluateNode(root->u.child.right);
 		}	
 		break;
 
 	case ELSE:
-		if(!(expr(left(root))))
+		if(!(evaluateExpr(root->u.child.left)))
 		{
-			evaluate(right(root));
+			evaluateNode(root->u.child.right);
 		}	
 		break;
 
 	default:
-		fprintf(stderr, "%s(%d): error -- Etiqueta desconocida en expresión AST %u\n", programName, lnum(root), tag(root));
+		fprintf(stderr, "%s(%d): error -- Etiqueta desconocida en evaluateExpresión AST %u\n", programName, lnum(root), root)->tag;
 	break;
 	}
 }
@@ -252,7 +244,7 @@ void evaluate(ast_t *root)
 {
 	while (root != NULL)
 	{
-		proc(left(root));
-		root = right(root);
+		evaluateNode(root->u.child.left);
+		root = root->u.child.right;
 	}
 }
