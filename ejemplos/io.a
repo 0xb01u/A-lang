@@ -1,0 +1,2 @@
+read "Introduzca una variable" x
+print "Ha introducido" x

@@ -17,10 +17,10 @@ ac.syn.c: $(SYN_DEP)
 ac.syn.h: $(SYN_DEP)
 
 $(LEXICAL):
-	flex -o $(LEX_NAME) $?
+	lex -o $(LEX_NAME) $?
 
 $(SYNTAX):
-	bison --defines -o $(SYN_NAME) $?
+	yacc --defines -o $(SYN_NAME) $?
 
 clean:
 	rm ac ac.lex.c ac.syn.*

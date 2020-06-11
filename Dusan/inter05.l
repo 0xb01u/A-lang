@@ -47,31 +47,31 @@ LETTER    ([_a-zA-Z])
 DIGIT     ([0-9])
 DIGITS    ({DIGIT}+)
 
-EXP       ([eE][-+]?{DIGITS}) /* Exponente de una float */
+EXP       ([eE][-+]?{DIGITS})
 
 FLOAT1    ({DIGITS}"."{DIGITS})
 FLOAT2    ({DIGITS}{EXP})
 FLOAT3    ({DIGITS}"."{DIGITS}{EXP})
 
-IDENT     ({LETTER}({LETTER}|{DIGIT})*) /* Identificador */
+IDENT     ({LETTER}({LETTER}|{DIGIT})*)
 
-COMSEP    ([\n])  /* Separador de "comandos" (sentencias) */
+COMSEP    ([\n])
 
-WSPC      ([ \t\f\r]) /* "Espacio en blanco", no se va a utilizar para nada */
-WSPCS     ({WSPC}+)   /* Muchos espacios en blanco */
+WSPC      ([ \t\f\r])
+WSPCS     ({WSPC}+)
 
 FLOAT     ({FLOAT1}|{FLOAT2}|{FLOAT3})
 
-OP1       ([-+/*=<>?:()!^]) /* Operadores aritméticos */
-OP2       ("=="|"!="|"<="|">="|"&&"|"||") /* Operadores lógicos */
+OP1       ([-+/*=<>?:()!^])
+OP2       ("=="|"!="|"<="|">="|"&&"|"||")
 
-STRSTART  (["])   /* Comienzo de cadena de caracteres: comillas dobles " /**/
+STRSTART  (["])
 
 %%
 
-WSPC              ; /* nothing to do, white space */
+{WSPC}              ; /* nothing to do, white space */
 
-IDENT               {
+{IDENT}               {
                         unsigned i = 0;
                         int r=-1;
                         char *res;
@@ -91,13 +91,13 @@ IDENT               {
                         return IDENT;   /* Se devuelve que se ha leído un identificador */
                     }
 
-COMSEP              {
+{COMSEP}              {
                         /* Salto de línea: se aumenta el número de línea */
                         ++yylineno; /* yylineno se define aquí (en este fichero) */
                         return yytext[0]; /* Se devuelve el salto de línea */
                     }
 
-DIGITS              {
+{DIGITS}              {
                         /* Se lee el número entero */
                         long int li;
                         sscanf(yytext,"%ld",&li);
@@ -108,7 +108,7 @@ DIGITS              {
                         return FLOAT;
                     }
                     
-FLOAT               {
+{FLOAT}               {
                         /* Se lee el número decimal */
                         sscanf(yytext,"%lf",&( yyFloat(yylval) ));
                         yyFlag(yylval) = fFLOAT;
@@ -116,7 +116,7 @@ FLOAT               {
                         return FLOAT;
                     }
                     
-STRSTART            {
+{STRSTART}            {
                       /* Se lee la String */
                       yyStr(yylval) = readStr();
                       yyFlag(yylval) = fSTR;
@@ -124,9 +124,9 @@ STRSTART            {
                       return STR;
                     }
                     
-OP1                 return yytext[0]; /* Se lee el operador aritmético */
+{OP1}                 return yytext[0]; /* Se lee el operador aritmético */
 
-OP2                 {
+{OP2}                 {
                         switch (yytext[0]) {  /* Se lee el operador lógico */
                             case '=':
                                 return EQ;

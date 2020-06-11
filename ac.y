@@ -17,6 +17,7 @@
 int yylex();
 int yyerror(char *error);
 extern int yylineno;
+extern FILE *yyin;
 
 /* Árbol de sintaxis */
 static ast_t *ast = NULL;
@@ -267,7 +268,7 @@ char programName[256] = "";
 /* Gestión de errores */
 int yyerror(char *error)
 {
-	printf("%s(%d): error -- %s\n", programName, yylineno, error);
+	fprintf(stderr, "%s(%d): error -- %s\n", programName, yylineno, error);
 	return 1;
 }
 
@@ -281,7 +282,7 @@ int main(int argc, char *argv[])
 
 	strcpy(programName, argv[1]);
 
-	FILE *yyin = fopen(programName, "rb");
+	yyin = fopen(programName, "rb");
 	if (yyin == NULL)
 	{
 		fprintf(stderr, "Error intentando abrir el fichero %s\n", programName);
@@ -293,7 +294,7 @@ int main(int argc, char *argv[])
 		fclose(yyin);
 		fprintf(stderr, "Compilación abortada.\n");
 	}
-	
+
 	fclose(yyin);
 
 	if (ast != NULL)

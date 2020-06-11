@@ -45,58 +45,50 @@ extern char programName[];
 
 static char *readStr();
 static void addStr(char **s, unsigned long *len, char c);
-
 %}
 
- /*Letras del alfabeto, minusculas y mayusculas*/
 LETTER		([_a-zA-Z])
 
- /*Digito y numeros*/
 DIGIT		([0-9])
 NUMBER		({DIGIT}+)
 
- /*Representacion tipo float*/
-FLOAT     	(({NUMBER}"."{DIGIT}*)({DIGIT}*"."{NUMBER})
+FLOAT		(({NUMBER}"."{DIGIT}*)|({DIGIT}*"."{NUMBER}))
 
- /*Identificador*/
-ID		({LETTER}({LETTER}|{DIGIT})*)
+ID			({LETTER}({LETTER}|{DIGIT})*)
 
- /*Delimitador de bloques*/	
-DEL_BL_A		(["{"{WSPC}*"\n"])
-DEL_BL_C		(["}"{WSPC}*"\n"])
- /* DEL_BL_C_2????? */	
+DEL_BL_A	([{{WSPC}*\n])
+DEL_BL_C	([}{WSPC}*\n])
 
- /*Espacios en blanco*/
 WSPC		([ \t\f\r])
 WSCPS		({WSPC}+)
 
-/*Operadores aritmeticos*/
 OP_AR		([+*-/%=()^])
 
- /*Operadores logicos*/
 OP_LOG		("=="|"!="|"<"|">")
 
- /*Comienzo de cadena de caracteres*/
 STR_START	(["])
 
- /* Comentario de línea */
-LINE_COMM	("//".*"\n")
+LINE_COMM	("//".*\n)
 
- /* Comentarios del programa */
-COMM ("/*"[.|"\n"]*"*/")
+COMM ("/*"[.|\n]*"*/")
 
 %%
 
-WSPC|LINE_COMM	;
+[\n]	{	/*Salto de linea*/
+			++yylineno;
+			return yytext[0];
+		}
 
-COMM	{	/*Cuenta las líneas que ocupa el comentario*/
+{WSPC}|{LINE_COMM}	;
+
+{COMM}	{	/*Cuenta las líneas que ocupa el comentario*/
 			for (int i = 0; i < strlen(yytext); i++)
 			{
 				if (yytext[0] == '\n') yylineno++;
 			}
 		}
 
-ID		{	
+{ID}	{
 			unsigned i = 0;
 			int r = -1;
 			char *res;
@@ -114,13 +106,8 @@ ID		{
 			return ID;
 		}
 
-"\n"	{	/*Salto de linea*/
-			++yylineno;
-			return yytext[0];
-		}
-
-NUMBER	{		/*Se lee el numero entero y se castea a double*/
-			long int li;
+{NUMBER}	{	/*Se lee el numero entero y se castea a double*/
+			long li;
 			sscanf(yytext, "%ld", &li);
 			yylval.s.u.real_value = (double)li;
 			yylval.s.type = REAL_id;
@@ -128,7 +115,7 @@ NUMBER	{		/*Se lee el numero entero y se castea a double*/
 			return FLOAT;
 		}
 
-FLOAT	{	/*Se lee el numero decimal*/
+{FLOAT}	{	/*Se lee el numero decimal*/
 			sscanf(yytext, "%lf", &yylval.s.u.real_value);
 			yylval.s.type = REAL_id;
 
@@ -136,18 +123,18 @@ FLOAT	{	/*Se lee el numero decimal*/
 
 		}
 
-STR_START	{
+{STR_START}	{
 			yylval.s.u.string = readStr();
 			yylval.s.type = STR_id;
 			return STR;
 		}
 
 
-OP_AR	{
+{OP_AR}	{
 			return yytext[0];
 		}
 	
-OP_LOG	{
+{OP_LOG}	{
 			switch(yytext[0]) {
 				case '=':
 					return EQ;
