@@ -6,6 +6,7 @@
 
 #include "ast.h"
 #include "autils.h"
+#include "ac.syn.h"
 #include "symtab.h"
 
 #include <math.h>
@@ -17,7 +18,8 @@ extern char programName[];
 
 ast_t *newLeafString(unsigned tag, char *str)
 {
-	mallocCheck(ast_t *res, sizeof(ast_t));
+	ast_t *res;
+	mallocCheck(res, sizeof(ast_t));
 	res->lineNum = (unsigned)yylineno;
 	res->tag = tag;
 	res->u.str = str;
@@ -27,7 +29,8 @@ ast_t *newLeafString(unsigned tag, char *str)
 
 ast_t *newLeafNum(unsigned tag, double dval)
 {
-	mallocCheck(ast_t *res, sizeof(ast_t));
+	ast_t *res;
+	mallocCheck(res, sizeof(ast_t));
 	res->lineNum = (unsigned)yylineno;
 	res->tag = tag;
 	res->u.real = dval;
@@ -36,7 +39,8 @@ ast_t *newLeafNum(unsigned tag, double dval)
 
 ast_t *newNode(unsigned tag, ast_t *l, ast_t *r)
 {
-	mallocCheck(ast_t *res, sizeof(ast_t));
+	ast_t *res;
+	mallocCheck(res, sizeof(ast_t));
 	res->lineNum = (unsigned)yylineno;
 	res->tag = tag;
 	res->u.child.left = l;
@@ -66,76 +70,68 @@ ast_t *newRoot(unsigned tag, ast_t *lst, ast_t *nd)
 }
 
 static symbol evaluateExpr(ast_t *root)
-{	
+{
+	symbol value;	/* Value of the expression. */
 	switch (root->tag)
 	{
 		case EQ:
 			if ((evaluateExpr(root->u.child.left)).value.real == (evaluateExpr(root->u.child.right)).value.real)
 			{
-				symbol value;
 				value.type = REAL_id;
 				value.value.real = 1.0;
 				return value;
 			}
 			else
 			{
-				symbol value;
 				value.type = REAL_id;
 				value.value.real = 0.0;
 				return value;
 			}
 
 		case NE:
-			if ((evaluateExpr(root->u.child.left)).value != (evaluateExpr(root->u.child.right)).value)
+			if ((evaluateExpr(root->u.child.left)).value.real != (evaluateExpr(root->u.child.right)).value.real)
 			{
 
-				symbol value;
 				value.type = REAL_id;
 				value.value.real = 1.0;
 				return value;
 			}
 			else
 			{
-				symbol value;
 				value.type = REAL_id;
 				value.value.real = 0.0;
 				return value;
 			}
 
 		case LT:
-			if ((evaluateExpr(root->u.child.left)).real.value < (evaluateExpr(root->u.child.right)).real.value)
+			if ((evaluateExpr(root->u.child.left)).value.real < (evaluateExpr(root->u.child.right)).value.real)
 			{
-				symbol value;
 				value.type = REAL_id;
 				value.value.real = 1.0;
 				return value;
 			}
 			else
 			{
-				symbol value;
 				value.type = REAL_id;
 				value.value.real = 0.0;
 				return value;
 			}
 
 		case GT:
-			if ((evaluateExpr(root->u.child.left)).real.value > (evaluateExpr(root->u.child.right)).real.value)
+			if ((evaluateExpr(root->u.child.left)).value.real > (evaluateExpr(root->u.child.right)).value.real)
 			{
-				symbol value;
 				value.type = REAL_id;
 				value.value.real = 1.0;
 				return value;
 			}
 			else
 			{
-				symbol value;
 				value.type = REAL_id;
 				value.value.real = 0.0;
 				return value;
 			}
 
 		case '+':
-			symbol value;
 			value.type = REAL_id;
 			value.value.real = (evaluateExpr(root->u.child.left)).value.real + (evaluateExpr(root->u.child.right)).value.real;
 			return value;
@@ -143,51 +139,43 @@ static symbol evaluateExpr(ast_t *root)
 		case '-':			
 			if (root->u.child.left == NULL)
 			{
-				symbol value;
 				value.type = REAL_id;
 				value.value.real = - (evaluateExpr(root->u.child.right)).value.real;
 				return value;
 			}
 			else
 			{
-				symbol value;
 				value.type = REAL_id;
 				value.value.real = (evaluateExpr(root->u.child.left)).value.real - (evaluateExpr(root->u.child.right)).value.real;
 				return value;
 			}
 
 		case '*':
-			symbol value;
 			value.type = REAL_id;
 			value.value.real = (evaluateExpr(root->u.child.left)).value.real * (evaluateExpr(root->u.child.right)).value.real;
 			return value;	
 
 		case '/':
-			symbol value;
 			value.type = REAL_id;
 			value.value.real = (evaluateExpr(root->u.child.left)).value.real / (evaluateExpr(root->u.child.right)).value.real;
 			return value;
 
 		case '%':
-			symbol value;
 			value.type = REAL_id;
 			value.value.real = fmod((evaluateExpr(root->u.child.left)).value.real, (evaluateExpr(root->u.child.right)).value.real);
 			return value;
 
 		case DIV:
-			symbol value;
 			value.type = REAL_id;
 			value.value.real = (int)((evaluateExpr(root->u.child.left)).value.real / (evaluateExpr(root->u.child.right)).value.real);
 			return value;
 
 		case '^':
-			symbol value;
 			value.type = REAL_id;
 			value.value.real = pow((evaluateExpr(root->u.child.left)).value.real, (evaluateExpr(root->u.child.right)).value.real);
 			return value;
 
 		case FLOAT:
-			symbol value;
 			value.type = REAL_id;
 			value.value.real = root->u.real;
 			return value;
@@ -196,31 +184,27 @@ static symbol evaluateExpr(ast_t *root)
 			return get(root->u.str);
 
 		case SIN:
-			symbol value;
 			value.type = REAL_id;
 			value.value.real = sin(evaluateExpr(root->u.child.left).value.real);
 			return value;
 
 		case COS:
-			symbol value;
 			value.type = REAL_id;
 			value.value.real = cos(evaluateExpr(root->u.child.left).value.real);
 			return value;
 
 		case TAN:
-			symbol value;
 			value.type = REAL_id;
 			value.value.real = tan(evaluateExpr(root->u.child.left).value.real);
 			return value;
 
 		case LN:
-			symbol value;
 			value.type = REAL_id;
 			value.value.real = log(evaluateExpr(root->u.child.left).value.real);
 			return value;	   
 
 		default:
-			fprintf(stderr, "%s(%d): error -- Etiqueta desconocida en expresión AST %u\n", programName, lnum(root), root)->tag;
+			fprintf(stderr, "%s(%d): error -- Etiqueta desconocida en expresión AST %u\n", programName, root->lineNum, root->tag);
 		break;
 	}
 }
@@ -232,7 +216,7 @@ static void evaluateNode(ast_t *root)
 	switch (root->tag)
 	{
 		case '=':
-			edit(root->u.child.left->u.str, (evaluateExpr(root->u.child.right)).value.real);
+			edit(root->u.child.left->u.str, evaluateExpr(root->u.child.right));
 			break;
 
 		case PRINT:			
@@ -256,7 +240,10 @@ static void evaluateNode(ast_t *root)
 			{
 				symbol number;
 				number.type = REAL_id;
-		  	 	scanf("%lf", &number.value.real);
+		  	 	if (scanf("%lf", &number.value.real) != 1)
+		  	 	{
+		  	 		printf("Advertencia: input erróneo. El programa intentará continuar.\n");
+		  	 	}
 
 				edit(root->u.child.right->u.str, number);
 			}
@@ -265,7 +252,10 @@ static void evaluateNode(ast_t *root)
 				symbol number;
 				number.type = REAL_id;
 				printf("%s", root->u.child.left->u.str);
-				scanf("%lf", &number.value.real);
+				if (scanf("%lf", &number.value.real) != 1)
+		  	 	{
+		  	 		printf("Advertencia: input erróneo. El programa intentará continuar.\n");
+		  	 	}
 
 				edit(root->u.child.right->u.str, number);
 			}
@@ -300,13 +290,13 @@ static void evaluateNode(ast_t *root)
 		break;
 
 	default:
-		fprintf(stderr, "%s(%d): error -- Etiqueta desconocida en expresión AST %u\n", programName, lnum(root), root)->tag;
+		fprintf(stderr, "%s(%d): error -- Etiqueta desconocida en expresión AST %u\n", programName, root->lineNum, root->tag);
 	break;
 	}
 }
 
 
-void evaluate(ast_t *root)
+void process(ast_t *root)
 {
 	while (root != NULL)
 	{

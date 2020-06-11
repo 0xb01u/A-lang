@@ -13,11 +13,18 @@ typedef struct ast_s {
 	unsigned lineNum;
 	union {
 		struct {
-			ast_t *left, *right;
+			struct ast_s *left, *right;
 		} child;
 		char *str;
 		double real;
 	} u;
 } ast_t;
+
+ast_t *newLeafString(unsigned tag, char *str);
+ast_t *newLeafNum(unsigned tag, double dval);
+ast_t *newNode(unsigned tag, ast_t *l, ast_t *r);
+ast_t *newRoot(unsigned tag, ast_t *lst, ast_t *nd);
+
+void process(ast_t *root);
 
 #endif

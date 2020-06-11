@@ -11,13 +11,15 @@
 #include <string.h>
 
 #include "autils.h"
-#include "ast.c"
+#include "ast.h"
 #include "ac.syn.h"
 
+int yylex();
+int yyerror(char *error);
 extern int yylineno;
 
 /* Árbol de sintaxis */
-static ast_t ast = NULL;
+static ast_t *ast = NULL;
 
 %}
 
@@ -29,7 +31,7 @@ static ast_t ast = NULL;
 			double real_value;	/* Como número real */
 			long int_value;		/* Como número entero */
 			char *string;		/* Como cadena de caracteres */
-			struct ast_t *node;
+			struct ast_s *node;
 		} u;
 	} s;
 }
@@ -44,7 +46,7 @@ static ast_t ast = NULL;
 
 %token <s> ID
 %term PRINT READ SIN COS TAN LN
-%token <S> FLOAT
+%token <s> FLOAT
 %token <s> STR
 %term WHILE IF ELSE DEL_BL_A DEL_BL_C
 
@@ -97,7 +99,7 @@ SENTENCE_GROUP
 	| SENTENCE_GROUP SENTENCE '\n'
 	{
 		$$.type = AST_NODE_id;
-		$$.U.node = newNode('s', NULL, $2.u.node);
+		$$.u.node = newNode('s', NULL, $2.u.node);
 	}
 	;
 
@@ -107,7 +109,7 @@ SENTENCE
 	: ID '=' EXPR
 	{
 		$$.type = AST_NODE_id;
-		$$.u.node = newNode(ASSIG, newLeafString(ID, $1.u.string), $3.u.node);
+		$$.u.node = newNode('=', newLeafString(ID, $1.u.string), $3.u.node);
 	}
 	/* Impresión de un valor */
 	| PRINT EXPR
@@ -137,7 +139,7 @@ SENTENCE
 	| READ STR ID
 	{
 		$$.type = AST_NODE_id;
-		$$.u.node = newNode(READ, newLeafString(STR, $2.u.string), newLeafString(ID, $3.u.string))
+		$$.u.node = newNode(READ, newLeafString(STR, $2.u.string), newLeafString(ID, $3.u.string));
 	}
 	| WHILE '(' EXPR ')' BLOCK
 	{
@@ -229,12 +231,12 @@ EXPR
 	| FLOAT
 	{
 	  	$$.type = AST_NODE_id;
-	  	$$.u.node = newLeafNum(FLOAT,$1.u.real_value);
+	  	$$.u.node = newLeafNum(FLOAT, $1.u.real_value);
 	}
 	| ID
 	{
 	  	$$.type = AST_NODE_id;
-	  	$$.u.node = newLeafString(ID,$1.u.string);
+	  	$$.u.node = newLeafString(ID, $1.u.string);
 	}
 	| SIN '(' EXPR ')'
 	{
@@ -263,9 +265,9 @@ EXPR
 char programName[256] = "";
 
 /* Gestión de errores */
-int yyerror(char *str)
+int yyerror(char *error)
 {
-	printf("%s(%d): error -- %s\n", programName, yylineno, str);
+	printf("%s(%d): error -- %s\n", programName, yylineno, error);
 	return 1;
 }
 
@@ -279,7 +281,7 @@ int main(int argc, char *argv[])
 
 	strcpy(programName, argv[1]);
 
-	yyin = fopen(programName, "rb");
+	FILE *yyin = fopen(programName, "rb");
 	if (yyin == NULL)
 	{
 		fprintf(stderr, "Error intentando abrir el fichero %s\n", programName);
