@@ -93,6 +93,10 @@ BLOCK
 	{
 		$$ = $2;
 	}
+	| '\n' DEL_BL_A SENTENCE_GROUP DEL_BL_C
+	{
+		$$ = $3;
+	}
 	;
 
  /* Grupo de sentencias */
@@ -155,11 +159,10 @@ SENTENCE
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(WHILE, $3.u.node, $5.u.node);
 	}
-	/* TODO: FOR? */
 	| IF '(' EXPR ')' SENTENCE ELSE SENTENCE
 	{
+		ast = newRoot('r', ast, newNode(IF, $3.u.node, $5.u.node));
 		$$.type = AST_NODE_id;
-		$$.u.node = newNode(IF, $3.u.node, $5.u.node);
 		$$.u.node = newNode(ELSE, $3.u.node, $7.u.node);
 	}
 	| IF '(' EXPR ')' SENTENCE
@@ -324,7 +327,7 @@ int main(int argc, char *argv[])
 {
 	if (argc < 2 || argc > 3 || (argc == 3 && strcmp("-t", argv[2]) != 0))
 	{
-		printf("Uso: ./ac <fichero> [-t]");
+		printf("Uso: ./ac <fichero> [-t]\n");
 		exit(FILE_ERROR);
 	}
 

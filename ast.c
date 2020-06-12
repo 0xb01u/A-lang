@@ -21,7 +21,7 @@ ast_t *newLeafString(unsigned tag, char *str)
 {
 	ast_t *res;
 	mallocCheck(res, sizeof(ast_t));
-	res->lineNum = (unsigned)yylineno;
+	res->lineNum = (unsigned)yylineno - 1;
 	res->tag = tag;
 	res->u.str = str;
 	return res;
@@ -32,7 +32,7 @@ ast_t *newLeafNum(unsigned tag, double dval)
 {
 	ast_t *res;
 	mallocCheck(res, sizeof(ast_t));
-	res->lineNum = (unsigned)yylineno;
+	res->lineNum = (unsigned)yylineno - 1;
 	res->tag = tag;
 	res->u.real = dval;
 	return res;
@@ -43,7 +43,7 @@ ast_t *newLeafInt(unsigned tag, long val)
 {
 	ast_t *res;
 	mallocCheck(res, sizeof(ast_t));
-	res->lineNum = (unsigned)yylineno;
+	res->lineNum = (unsigned)yylineno - 1;
 	res->tag = tag;
 	res->u.integer = val;
 	return res;
@@ -53,7 +53,7 @@ ast_t *newNode(unsigned tag, ast_t *l, ast_t *r)
 {
 	ast_t *res;
 	mallocCheck(res, sizeof(ast_t));
-	res->lineNum = (unsigned)yylineno;
+	res->lineNum = (unsigned)yylineno - 1;
 	res->tag = tag;
 	res->u.child.left = l;
 	res->u.child.right = r;

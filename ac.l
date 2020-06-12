@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "autils.h"
 #include "ac.syn.h"
@@ -75,7 +76,7 @@ STR_START	(["])
 
 LINE_COMM	("//".*\n)
 
-COMM ("/*"(.|\n)*"*/")
+COMM ("/*"([^"*/"])*"*/")
 
 %%
 
@@ -96,12 +97,18 @@ COMM ("/*"(.|\n)*"*/")
 		}
 
 {COMM}	{	/*Cuenta las líneas que ocupa el comentario*/
+			bool hasNewlines = false;
+
 			for (int i = 0; i < strlen(yytext); i++)
 			{
-				if (yytext[0] == '\n') yylineno++;
+				if (yytext[0] == '\n')
+				{
+					hasNewlines = true;
+					yylineno++;
+				}
 			}
 
-			return '\n';
+			if (hasNewlines) return '\n';
 		}
 
 {ID}	{
