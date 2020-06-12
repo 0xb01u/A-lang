@@ -17,11 +17,13 @@ typedef struct ast_s {
 		} child;
 		char *str;
 		double real;
+		long integer;
 	} u;
 } ast_t;
 
 ast_t *newLeafString(unsigned tag, char *str);
 ast_t *newLeafNum(unsigned tag, double dval);
+ast_t *newLeafInt(unsigned tag, long int);
 ast_t *newNode(unsigned tag, ast_t *l, ast_t *r);
 ast_t *newRoot(unsigned tag, ast_t *lst, ast_t *nd);
 

@@ -37,16 +37,19 @@ static ast_t *ast = NULL;
 	} s;
 }
 
-%nonassoc EQ NE LT GT
+%nonassoc EQ NE LAND LOR LT GT
+
+%left BAND BOR SL SR
 
 %left '+' '-'
 %left '*' '/' '%' DIV
 
 %right '^'
-%nonassoc UNARY
+%nonassoc UNARY BNOT
 
 %token <s> ID
 %term PRINT READ SIN COS TAN LN
+%token <s> INT
 %token <s> FLOAT
 %token <s> STR
 %term WHILE IF ELSE DEL_BL_A DEL_BL_C
@@ -176,6 +179,16 @@ EXPR
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(NE, $1.u.node, $3.u.node);
 	}
+	| EXPR LAND EXPR
+	{
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(LAND, $1.u.node, $3.u.node);
+	}
+	| EXPR LOR EXPR
+	{
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(LOR, $1.u.node, $3.u.node);
+	}
 	| EXPR LT EXPR
 	{
 		$$.type = AST_NODE_id;
@@ -218,9 +231,9 @@ EXPR
 	}
 	| EXPR DIV EXPR
 	{
-	  	$$.type = AST_NODE_id;
-	  	$$.u.node = newNode(DIV, $1.u.node, $3.u.node);
-   	}
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(DIV, $1.u.node, $3.u.node);
+	}
 	| '+' EXPR %prec UNARY
 	{
 		$$ = $2;
@@ -234,35 +247,65 @@ EXPR
 	{
 		$$ = $2;
 	}
+	| EXPR BAND EXPR
+	{
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(BAND, $1.u.node, $3.u.node);
+	}
+	| EXPR BOR EXPR
+	{
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(BOR, $1.u.node, $3.u.node);
+	}
+	| BNOT EXPR
+	{
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(BNOT, NULL, $2.u.node);
+	}
+	| EXPR SL EXPR
+	{
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(SL, $1.u.node, $3.u.node);		
+	}
+	| EXPR SR EXPR
+	{
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(SR, $1.u.node, $3.u.node);		
+	}
 	| FLOAT
 	{
-	  	$$.type = AST_NODE_id;
-	  	$$.u.node = newLeafNum(FLOAT, $1.u.real_value);
+		$$.type = AST_NODE_id;
+		$$.u.node = newLeafNum(FLOAT, $1.u.real_value);
+	}
+	| INT
+	{
+		$$.type = AST_NODE_id;
+		$$.u.node = newLeafInt(INT, $1.u.int_value);
 	}
 	| ID
 	{
-	  	$$.type = AST_NODE_id;
-	  	$$.u.node = newLeafString(ID, $1.u.string);
+		$$.type = AST_NODE_id;
+		$$.u.node = newLeafString(ID, $1.u.string);
 	}
 	| SIN '(' EXPR ')'
 	{
-	  	$$.type = AST_NODE_id;
-	  	$$.u.node = newNode(SIN, $3.u.node, NULL);
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(SIN, $3.u.node, NULL);
 	}
 	| COS '(' EXPR ')'
 	{
-	  	$$.type = AST_NODE_id;
-	  	$$.u.node = newNode(COS, $3.u.node, NULL);
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(COS, $3.u.node, NULL);
 	}
 	| TAN '(' EXPR ')'
 	{
-	  	$$.type = AST_NODE_id;
-	  	$$.u.node = newNode(TAN, $3.u.node, NULL);
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(TAN, $3.u.node, NULL);
 	}
 	| LN '(' EXPR ')'
 	{
-	  	$$.type = AST_NODE_id;
-	  	$$.u.node = newNode(LN, $3.u.node, NULL);
+		$$.type = AST_NODE_id;
+		$$.u.node = newNode(LN, $3.u.node, NULL);
 	}
 	;
 

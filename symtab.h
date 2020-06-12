@@ -10,6 +10,7 @@ typedef struct symbol_s {
 	int type;
 	union {
 		double real;
+		long integer;
 	} value;
 } symbol;
 

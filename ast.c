@@ -38,6 +38,17 @@ ast_t *newLeafNum(unsigned tag, double dval)
 	return res;
 }
 
+
+ast_t *newLeafInt(unsigned tag, long val)
+{
+	ast_t *res;
+	mallocCheck(res, sizeof(ast_t));
+	res->lineNum = (unsigned)yylineno;
+	res->tag = tag;
+	res->u.integer = val;
+	return res;
+}
+
 ast_t *newNode(unsigned tag, ast_t *l, ast_t *r)
 {
 	ast_t *res;
@@ -73,6 +84,8 @@ ast_t *newRoot(unsigned tag, ast_t *lst, ast_t *nd)
 static symbol evaluateExpr(ast_t *node)
 {
 	symbol value;	/* Valor de la expresión */
+	symbol left;	/* Valor del hijo izquierdo */
+	symbol right;	/* Valor del hijo derecho */
 	switch (node->tag)
 	{
 		case EQ:
@@ -93,6 +106,34 @@ static symbol evaluateExpr(ast_t *node)
 			if ((evaluateExpr(node->u.child.left)).value.real != (evaluateExpr(node->u.child.right)).value.real)
 			{
 
+				value.type = REAL_id;
+				value.value.real = 1.0;
+				return value;
+			}
+			else
+			{
+				value.type = REAL_id;
+				value.value.real = 0.0;
+				return value;
+			}
+
+			case LAND:
+			if ((evaluateExpr(node->u.child.left)).value.real && (evaluateExpr(node->u.child.right)).value.real)
+			{
+				value.type = REAL_id;
+				value.value.real = 1.0;
+				return value;
+			}
+			else
+			{
+				value.type = REAL_id;
+				value.value.real = 0.0;
+				return value;
+			}
+
+			case LOR:
+			if ((evaluateExpr(node->u.child.left)).value.real || (evaluateExpr(node->u.child.right)).value.real)
+			{
 				value.type = REAL_id;
 				value.value.real = 1.0;
 				return value;
@@ -133,47 +174,191 @@ static symbol evaluateExpr(ast_t *node)
 			}
 
 		case '+':
-			value.type = REAL_id;
-			value.value.real = (evaluateExpr(node->u.child.left)).value.real + (evaluateExpr(node->u.child.right)).value.real;
+			left = evaluateExpr(node->u.child.left);
+			right = evaluateExpr(node->u.child.right);
+			if (left.type == INT_id && right.type == INT_id)
+			{
+				value.type = INT_id;
+				value.value.integer = (left.value.integer + right.value.integer);
+			}
+			else
+			{
+				value.type = REAL_id;
+				value.value.real = (double)left.value.real + (double)right.value.real;
+			}
 			return value;
 
 		case '-':			
 			if (node->u.child.left == NULL)
 			{
-				value.type = REAL_id;
-				value.value.real = - (evaluateExpr(node->u.child.right)).value.real;
-				return value;
+				right = evaluateExpr(node->u.child.right);
+				if (right.type == INT_id)
+				{
+					value.type = INT_id;
+					value.value.integer = -right.value.integer;
+				}
+				else
+				{
+					value.type = REAL_id;
+					value.value.real = - (evaluateExpr(node->u.child.right)).value.real;
+				}
+			}
+			else
+			{
+				left = evaluateExpr(node->u.child.left);
+				right = evaluateExpr(node->u.child.right);
+				if (left.type == INT_id && right.type == INT_id)
+				{
+					value.type = INT_id;
+					value.value.integer = (left.value.integer - right.value.integer);
+				}
+				else
+				{
+					value.type = REAL_id;
+					value.value.real = (double)left.value.real - (double)right.value.real;
+				}
+			}
+			return value;
+
+		case '*':
+			left = evaluateExpr(node->u.child.left);
+			right = evaluateExpr(node->u.child.right);
+			if (left.type == INT_id && right.type == INT_id)
+			{
+				value.type = INT_id;
+				value.value.integer = (left.value.integer * right.value.integer);
 			}
 			else
 			{
 				value.type = REAL_id;
-				value.value.real = (evaluateExpr(node->u.child.left)).value.real - (evaluateExpr(node->u.child.right)).value.real;
-				return value;
+				value.value.real = (double)left.value.real * (double)right.value.real;
 			}
-
-		case '*':
-			value.type = REAL_id;
-			value.value.real = (evaluateExpr(node->u.child.left)).value.real * (evaluateExpr(node->u.child.right)).value.real;
 			return value;	
 
 		case '/':
-			value.type = REAL_id;
-			value.value.real = (evaluateExpr(node->u.child.left)).value.real / (evaluateExpr(node->u.child.right)).value.real;
+			left = evaluateExpr(node->u.child.left);
+			right = evaluateExpr(node->u.child.right);
+			if (left.type == INT_id && right.type == INT_id)
+			{
+				value.type = INT_id;
+				value.value.integer = (left.value.integer / right.value.integer);
+			}
+			else
+			{
+				value.type = REAL_id;
+				value.value.real = (double)left.value.real / (double)right.value.real;
+			}
 			return value;
 
 		case '%':
-			value.type = REAL_id;
-			value.value.real = fmod((evaluateExpr(node->u.child.left)).value.real, (evaluateExpr(node->u.child.right)).value.real);
+			left = evaluateExpr(node->u.child.left);
+			right = evaluateExpr(node->u.child.right);
+			if (left.type == INT_id && right.type == INT_id)
+			{
+				value.type = INT_id;
+				value.value.integer = (left.value.integer % right.value.integer);
+			}
+			else
+			{
+				value.type = REAL_id;
+				value.value.real = fmod((double)left.value.real, (double)right.value.real);
+			}
 			return value;
 
-		case DIV:
-			value.type = REAL_id;
-			value.value.real = (int)((evaluateExpr(node->u.child.left)).value.real / (evaluateExpr(node->u.child.right)).value.real);
+		case DIV:		
+			left = evaluateExpr(node->u.child.left);
+			right = evaluateExpr(node->u.child.right);
+			value.type = INT_id;
+			value.value.integer = ((long)left.value.integer / (long)right.value.integer);
 			return value;
 
 		case '^':
-			value.type = REAL_id;
-			value.value.real = pow((evaluateExpr(node->u.child.left)).value.real, (evaluateExpr(node->u.child.right)).value.real);
+			left = evaluateExpr(node->u.child.left);
+			right = evaluateExpr(node->u.child.right);
+			if (left.type == INT_id && right.type == INT_id)
+			{
+				value.type = INT_id;
+				value.value.integer = (long)pow(left.value.integer, right.value.integer);
+			}
+			else
+			{
+				value.type = REAL_id;
+				value.value.real = pow((double)left.value.real, (double)right.value.real);
+			}
+			return value;
+
+		case BAND:
+			left = evaluateExpr(node->u.child.left);
+			right = evaluateExpr(node->u.child.right);
+			if (left.type == INT_id && right.type == INT_id)
+			{
+				value.type = INT_id;
+				value.value.integer = left.value.integer & right.value.integer;
+			}
+			else
+			{
+				fprintf(stderr, "%s(%d): error -- Operacion ilegal: las operaciones de bits solo se aplican sobre operadores enteros\n", programName, node->lineNum);
+				exit(ILEGAL_OPERATION);
+			}
+			return value;
+
+		case BOR:
+			left = evaluateExpr(node->u.child.left);
+			right = evaluateExpr(node->u.child.right);
+			if (left.type == INT_id && right.type == INT_id)
+			{
+				value.type = INT_id;
+				value.value.integer = left.value.integer | right.value.integer;
+			}
+			else
+			{
+				fprintf(stderr, "%s(%d): error -- Operacion ilegal: las operaciones de bits solo se aplican sobre operadores enteros\n", programName, node->lineNum);
+				exit(ILEGAL_OPERATION);
+			}
+			return value;
+
+		case BNOT:
+			right = evaluateExpr(node->u.child.right);
+			if (left.type == INT_id && right.type == INT_id)
+			{
+				value.type = INT_id;
+				value.value.integer = ~right.value.integer;
+			}
+			else
+			{
+				fprintf(stderr, "%s(%d): error -- Operacion ilegal: las operaciones de bits solo se aplican sobre operadores enteros\n", programName, node->lineNum);
+				exit(ILEGAL_OPERATION);
+			}
+			return value;
+
+		case SL:
+			left = evaluateExpr(node->u.child.left);
+			right = evaluateExpr(node->u.child.right);
+			if (left.type == INT_id && right.type == INT_id)
+			{
+				value.type = INT_id;
+				value.value.integer = left.value.integer << right.value.integer;
+			}
+			else
+			{
+				fprintf(stderr, "%s(%d): error -- Operacion ilegal: las operaciones de bits solo se aplican sobre operadores enteros\n", programName, node->lineNum);
+				exit(ILEGAL_OPERATION);
+			}
+			return value;
+
+		case SR:
+			left = evaluateExpr(node->u.child.left);
+			right = evaluateExpr(node->u.child.right);
+			if (left.type == INT_id && right.type == INT_id)
+			{
+				value.type = INT_id;
+				value.value.integer = left.value.integer >> right.value.integer;
+			}
+			else
+			{
+				fprintf(stderr, "%s(%d): error -- Operacion ilegal: las operaciones de bits solo se aplican sobre operadores enteros\n", programName, node->lineNum);
+				exit(ILEGAL_OPERATION);
+			}
 			return value;
 
 		case FLOAT:
@@ -181,27 +366,32 @@ static symbol evaluateExpr(ast_t *node)
 			value.value.real = node->u.real;
 			return value;
 
+		case INT:
+			value.type = INT_id;
+			value.value.integer = node->u.integer;
+			return value;
+
 		case ID:
 			return get(node->u.str);
 
 		case SIN:
 			value.type = REAL_id;
-			value.value.real = sin(evaluateExpr(node->u.child.left).value.real);
+			value.value.real = sin((double)evaluateExpr(node->u.child.left).value.real);
 			return value;
 
 		case COS:
 			value.type = REAL_id;
-			value.value.real = cos(evaluateExpr(node->u.child.left).value.real);
+			value.value.real = cos((double)evaluateExpr(node->u.child.left).value.real);
 			return value;
 
 		case TAN:
 			value.type = REAL_id;
-			value.value.real = tan(evaluateExpr(node->u.child.left).value.real);
+			value.value.real = tan((double)evaluateExpr(node->u.child.left).value.real);
 			return value;
 
 		case LN:
 			value.type = REAL_id;
-			value.value.real = log(evaluateExpr(node->u.child.left).value.real);
+			value.value.real = log((double)evaluateExpr(node->u.child.left).value.real);
 			return value;	   
 
 		default:
@@ -223,7 +413,15 @@ static void evaluateNode(ast_t *node)
 		case PRINT:			
 			if (node->u.child.left == NULL)
 			{
-				printf("%g\n", (evaluateExpr(node->u.child.right)).value.real);
+				symbol right = evaluateExpr(node->u.child.right);
+				if (right.type == INT_id)
+				{
+					printf("%ld\n", right.value.integer);
+				}
+				else
+				{
+					printf("%g\n", right.value.real);
+				}
 			}
 			else if (node->u.child.right == NULL)
 			{
@@ -231,7 +429,15 @@ static void evaluateNode(ast_t *node)
 			}
 			else
 			{
-				printf("%s%g\n", node->u.child.left->u.str, (evaluateExpr(node->u.child.right)).value.real);
+				symbol right = evaluateExpr(node->u.child.right);
+				if (right.type == INT_id)
+				{
+					printf("%s%ld\n", node->u.child.left->u.str, right.value.integer);
+				}
+				else
+				{
+					printf("%s%g\n", node->u.child.left->u.str, right.value.real);
+				}
 			}
 			break;
 
@@ -239,23 +445,46 @@ static void evaluateNode(ast_t *node)
 			if (node->u.child.left == NULL)
 			{
 				symbol number;
-				number.type = REAL_id;
-		  	 	if (scanf("%lf", &number.value.real) != 1)
+				double val;
+
+		  	 	if (scanf("%lf", &val) != 1)
 		  	 	{
 		  	 		printf("Advertencia: input erroneo. El programa intentara continuar.\n");
 		  	 	}
+		  	 	if ((double)((long)val) == val)
+		  	 	{
+		  	 		number.type = INT_id;
+		  	 		number.value.integer = (long)val;
+		  	 	}
+		  	 	else
+		  	 	{
+					number.type = REAL_id;
+					number.value.real = val;
+				}
 
 				edit(node->u.child.right->u.str, number);
 			}
 			else
 			{
-				symbol number;
-				number.type = REAL_id;
 				printf("%s", node->u.child.left->u.str);
-				if (scanf("%lf", &number.value.real) != 1)
+
+				symbol number;
+				double val;
+
+		  	 	if (scanf("%lf", &val) != 1)
 		  	 	{
 		  	 		printf("Advertencia: input erroneo. El programa intentara continuar.\n");
 		  	 	}
+		  	 	if ((double)((long)val) == val)
+		  	 	{
+		  	 		number.type = INT_id;
+		  	 		number.value.integer = (long)val;
+		  	 	}
+		  	 	else
+		  	 	{
+					number.type = REAL_id;
+					number.value.real = val;
+				}
 
 				edit(node->u.child.right->u.str, number);
 			}

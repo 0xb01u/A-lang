@@ -52,6 +52,9 @@ LETTER		([_a-zA-Z])
 DIGIT		([0-9])
 NUMBER		({DIGIT}+)
 
+HEX_DIGIT	([0-9a-fA-F])
+HEX			(0x{HEX_DIGIT}+)
+
 FLOAT		(({NUMBER}"."{DIGIT}*)|({DIGIT}*"."{NUMBER}))
 
 ID			({LETTER}({LETTER}|{DIGIT})*)
@@ -64,7 +67,9 @@ WSCPS		({WSPC}+)
 
 OP_AR		([+*-/%=()^])
 
-OP_LOG		("=="|"!="|"<"|">")
+OP_LOG		("=="|"!="|"&&"|"||"|"<"|">")
+
+OP_BIT		("&"|"|"|"~"|"<<"|">>")
 
 STR_START	(["])
 
@@ -117,16 +122,21 @@ COMM ("/*"(.|\n)*"*/")
 			return ID;
 		}
 
-{NUMBER}	{	/*Se lee el numero entero y se castea a double*/
-			long li;
-			sscanf(yytext, "%ld", &li);
-			yylval.s.u.real_value = (double)li;
-			yylval.s.type = REAL_id;
+{NUMBER}	{	/*Se lee un numero entero*/
+			sscanf(yytext, "%ld", &yylval.s.u.int_value);
+			yylval.s.type = INT_id;
 
-			return FLOAT;
+			return INT;
 		}
 
-{FLOAT}	{	/*Se lee el numero decimal*/
+{HEX}	{
+			sscanf(&yytext[2], "%lx", &yylval.s.u.int_value);
+			yylval.s.type = INT_id;
+
+			return INT;
+		}
+
+{FLOAT}	{	/*Se lee un numero decimal*/
 			sscanf(yytext, "%lf", &yylval.s.u.real_value);
 			yylval.s.type = REAL_id;
 
@@ -144,13 +154,34 @@ COMM ("/*"(.|\n)*"*/")
 {OP_AR}	{
 			return yytext[0];
 		}
+
+{OP_BIT}	{
+			switch (yytext[0])
+			{
+				case '&':
+					return BAND;
+				case '|':
+					return BOR;
+				case '~':
+					return BNOT;
+				case '<':
+					return SL;
+				case '>':
+					return SR;
+			}
+	}
 	
 {OP_LOG}	{
-			switch(yytext[0]) {
+			switch (yytext[0])
+			{
 				case '=':
 					return EQ;
 				case '!':
 					return NE;
+				case '&':
+					return LAND;
+				case '|':
+					return LOR;
 				case '<':
 					return LT;
 				case '>':

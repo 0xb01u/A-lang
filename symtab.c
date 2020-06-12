@@ -24,7 +24,6 @@ static int size = 256;	/* Tamaño de la tabla */
 static int symbols = 0;	/* Número de entradas llenas */
 
 typedef struct {
-	bool used;
 	char *id;
 	symbol value;
 } entry;
@@ -70,13 +69,10 @@ static int pos(char *id)
 	int pos = first(id);
 	while (symTab[pos].id != NULL && strcmp(id, symTab[pos].id) != 0)
 	{
-		printf("%s\n", id);
-		if (symTab[pos].used)
-		{
-			return SYMTAB_NOT_FOUND;
-		}
 		step(id, &pos);
 	}
+
+	if (symTab[pos].id == NULL) return SYMTAB_NOT_FOUND;
 
 	return pos;
 }
@@ -86,7 +82,7 @@ static int pos(char *id)
 static int freePos(char *id)
 {
 	int pos = first(id);
-	while (strcmp(id, symTab[pos].id) != 0 && !symTab[pos].used)
+	while (symTab[pos].id != NULL && strcmp(id, symTab[pos].id) != 0)
 	{
 		step(id, &pos);
 	}
@@ -105,10 +101,9 @@ static bool resize()
 
 	for (int i = 0; i < size/2; i++)
 	{
-		if (tmp[i].used)
+		if (tmp[i].id != NULL)
 		{
 			int index = freePos(tmp[i].id);
-			symTab[index].used = true;
 			strcpy(symTab[index].id, tmp[i].id);
 			symTab[index].value = tmp[i].value;
 		}
@@ -143,8 +138,7 @@ void edit(char *id, symbol value)
 		resize();
 
 		index = freePos(id);
-		symTab[index].used = true;
-		strcpy(symTab[index].id, id);
+		symTab[index].id = id;
 	}
 
 	symTab[index].value = value;
