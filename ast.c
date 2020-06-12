@@ -86,6 +86,9 @@ static symbol evaluateExpr(ast_t *node)
 	symbol value;	/* Valor de la expresión */
 	symbol left;	/* Valor del hijo izquierdo */
 	symbol right;	/* Valor del hijo derecho */
+
+	double leftVal;	/* Valor numérico del hijo izquierdo */
+	double rightVal;/* Valor numérico del hijo derecho */
 	switch (node->tag)
 	{
 		case EQ:
@@ -183,8 +186,13 @@ static symbol evaluateExpr(ast_t *node)
 			}
 			else
 			{
+				if (left.type == INT_id) leftVal = (double)left.value.integer;
+				else leftVal = left.value.real;
+				if (right.type == INT_id) rightVal = (double)right.value.integer;
+				else rightVal = right.value.real;
+
 				value.type = REAL_id;
-				value.value.real = (double)left.value.real + (double)right.value.real;
+				value.value.real = leftVal + rightVal;
 			}
 			return value;
 
@@ -200,7 +208,7 @@ static symbol evaluateExpr(ast_t *node)
 				else
 				{
 					value.type = REAL_id;
-					value.value.real = - (evaluateExpr(node->u.child.right)).value.real;
+					value.value.real = - right.value.real;
 				}
 			}
 			else
@@ -214,8 +222,13 @@ static symbol evaluateExpr(ast_t *node)
 				}
 				else
 				{
+					if (left.type == INT_id) leftVal = (double)left.value.integer;
+					else leftVal = left.value.real;
+					if (right.type == INT_id) rightVal = (double)right.value.integer;
+					else rightVal = right.value.real;
+				
 					value.type = REAL_id;
-					value.value.real = (double)left.value.real - (double)right.value.real;
+					value.value.real = leftVal - rightVal;
 				}
 			}
 			return value;
@@ -230,16 +243,27 @@ static symbol evaluateExpr(ast_t *node)
 			}
 			else
 			{
+				if (left.type == INT_id) leftVal = (double)left.value.integer;
+				else leftVal = left.value.real;
+				if (right.type == INT_id) rightVal = (double)right.value.integer;
+				else rightVal = right.value.real;
+				
 				value.type = REAL_id;
-				value.value.real = (double)left.value.real * (double)right.value.real;
+				value.value.real = leftVal * rightVal;
 			}
 			return value;	
 
 		case '/':
 			left = evaluateExpr(node->u.child.left);
 			right = evaluateExpr(node->u.child.right);
+
+			if (left.type == INT_id) leftVal = (double)left.value.integer;
+			else leftVal = left.value.real;
+			if (right.type == INT_id) rightVal = (double)right.value.integer;
+			else rightVal = right.value.real;
+				
 			value.type = REAL_id;
-			value.value.real = (double)left.value.real / (double)right.value.real;
+			value.value.real = leftVal / rightVal;
 			return value;
 
 		case '%':
@@ -252,8 +276,13 @@ static symbol evaluateExpr(ast_t *node)
 			}
 			else
 			{
+				if (left.type == INT_id) leftVal = (double)left.value.integer;
+				else leftVal = left.value.real;
+				if (right.type == INT_id) rightVal = (double)right.value.integer;
+				else rightVal = right.value.real;
+				
 				value.type = REAL_id;
-				value.value.real = fmod((double)left.value.real, (double)right.value.real);
+				value.value.real = fmod(leftVal, rightVal);
 			}
 			return value;
 
@@ -274,8 +303,13 @@ static symbol evaluateExpr(ast_t *node)
 			}
 			else
 			{
+				if (left.type == INT_id) leftVal = (double)left.value.integer;
+				else leftVal = left.value.real;
+				if (right.type == INT_id) rightVal = (double)right.value.integer;
+				else rightVal = right.value.real;
+				
 				value.type = REAL_id;
-				value.value.real = pow((double)left.value.real, (double)right.value.real);
+				value.value.real = pow(leftVal, rightVal);
 			}
 			return value;
 
@@ -311,7 +345,7 @@ static symbol evaluateExpr(ast_t *node)
 
 		case BNOT:
 			right = evaluateExpr(node->u.child.right);
-			if (left.type == INT_id && right.type == INT_id)
+			if (right.type == INT_id)
 			{
 				value.type = INT_id;
 				value.value.integer = ~right.value.integer;
@@ -367,24 +401,44 @@ static symbol evaluateExpr(ast_t *node)
 			return get(node->u.str);
 
 		case SIN:
+			left = evaluateExpr(node->u.child.left);
+
+			if (left.type == INT_id) leftVal = (double)left.value.integer;
+			else leftVal = left.value.real;
+
 			value.type = REAL_id;
-			value.value.real = sin((double)evaluateExpr(node->u.child.left).value.real);
+			value.value.real = sin(leftVal);
 			return value;
 
 		case COS:
+			left = evaluateExpr(node->u.child.left);
+
+			if (left.type == INT_id) leftVal = (double)left.value.integer;
+			else leftVal = left.value.real;
+
 			value.type = REAL_id;
-			value.value.real = cos((double)evaluateExpr(node->u.child.left).value.real);
+			value.value.real = cos(leftVal);
 			return value;
 
 		case TAN:
+			left = evaluateExpr(node->u.child.left);
+
+			if (left.type == INT_id) leftVal = (double)left.value.integer;
+			else leftVal = left.value.real;
+
 			value.type = REAL_id;
-			value.value.real = tan((double)evaluateExpr(node->u.child.left).value.real);
+			value.value.real = tan(leftVal);
 			return value;
 
 		case LN:
+			left = evaluateExpr(node->u.child.left);
+
+			if (left.type == INT_id) leftVal = (double)left.value.integer;
+			else leftVal = left.value.real;
+
 			value.type = REAL_id;
-			value.value.real = log((double)evaluateExpr(node->u.child.left).value.real);
-			return value;	   
+			value.value.real = log(leftVal);
+			return value;
 
 		default:
 			fprintf(stderr, "%s(%d): error -- Etiqueta desconocida en expresion del AST %u\n", programName, node->lineNum, node->tag);

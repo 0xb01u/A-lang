@@ -1,0 +1,22 @@
+print "Programa para calcular la media de varios numeros."
+
+// La suma acumulada se guarda en "suma"
+suma = 0
+// "contador" cuenta la cantidad de números leídos
+contador = 0
+// "input" es una bandera para seguir leyendo números
+input = 1
+
+// Comenzamos leyendo un número
+while (input == 1) {
+	read "Introduzca el siguiente numero: " x
+	suma = suma + x
+	contador = contador + 1
+
+	read "Introduzca 1 si desea introducir mas numeros: " input
+	// Se sigue leyendo mientras el usuario introduzca "1"
+}
+
+print ""	// Impresión de una línea vacía
+media = suma / contador
+print "La media es " media
