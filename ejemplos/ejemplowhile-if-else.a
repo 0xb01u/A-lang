@@ -1,0 +1,11 @@
+x = 0
+while (x < 6) {
+	if (x % 2 == 0) {
+		print "Es par " x
+	} else {
+		print "Es impar " x
+	}
+	x = x + 1
+}
+print "Mira que majo " x
+
