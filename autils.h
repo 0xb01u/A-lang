@@ -17,8 +17,9 @@
 #define SYNTAX_ERROR		-2
 #define FILE_ERROR			-3
 #define SYMTAB_NOT_FOUND	-4
-#define MEMORY_ERROR		-5
+#define AST_UNKNOWN			-5
 #define ILEGAL_OPERATION	-6
+#define MEMORY_ERROR		-7
 
 #define mallocCheck(ptr, size) { \
 	if ((ptr = malloc(size)) == NULL) \

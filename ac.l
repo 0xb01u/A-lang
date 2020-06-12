@@ -136,7 +136,7 @@ COMM ("/*"(.|\n)*"*/")
 			return INT;
 		}
 
-{FLOAT}	{	/*Se lee un numero decimal*/
+{FLOAT}	{	/*Se lee un numero con decimales*/
 			sscanf(yytext, "%lf", &yylval.s.u.real_value);
 			yylval.s.type = REAL_id;
 
@@ -191,6 +191,7 @@ COMM ("/*"(.|\n)*"*/")
 		
 .		{
 			fprintf(stderr, "%s(%d): error -- Caracter inesperado %c\n", programName, yylineno, yytext[0]);
+			exit(LEXICAL_ERROR);
 		}
 
 %%
@@ -223,7 +224,10 @@ static char *readStr()
 	do {
 		c = input();
 		if (c < ' ')
+		{
 			fprintf(stderr, "%s(%d): error -- Simbolo no esperado en cadena de caracteres: %d\n", programName, yylineno, c);
+			exit(LEXICAL_ERROR);
+		}
 		if (c == '"') break;
 		if (c == '\\')
 		{

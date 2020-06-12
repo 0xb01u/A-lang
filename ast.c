@@ -238,16 +238,8 @@ static symbol evaluateExpr(ast_t *node)
 		case '/':
 			left = evaluateExpr(node->u.child.left);
 			right = evaluateExpr(node->u.child.right);
-			if (left.type == INT_id && right.type == INT_id)
-			{
-				value.type = INT_id;
-				value.value.integer = (left.value.integer / right.value.integer);
-			}
-			else
-			{
-				value.type = REAL_id;
-				value.value.real = (double)left.value.real / (double)right.value.real;
-			}
+			value.type = REAL_id;
+			value.value.real = (double)left.value.real / (double)right.value.real;
 			return value;
 
 		case '%':
@@ -396,6 +388,7 @@ static symbol evaluateExpr(ast_t *node)
 
 		default:
 			fprintf(stderr, "%s(%d): error -- Etiqueta desconocida en expresion del AST %u\n", programName, node->lineNum, node->tag);
+			exit(AST_UNKNOWN);
 		break;
 	}
 }
@@ -524,6 +517,7 @@ static void evaluateNode(ast_t *node)
 
 	default:
 		fprintf(stderr, "%s(%d): error -- Etiqueta desconocida en nodo del AST %u\n", programName, node->lineNum, node->tag);
+		exit(AST_UNKNOWN);
 	break;
 	}
 }
@@ -547,7 +541,14 @@ static char *translate(ast_t *node)
 	{
 		case EQ: return "EQ";
 		case NE: return "NE";
+		case LAND: return "L-AND";
+		case LOR: return "L-OR";
 		case LT: return "LT";
+		case BAND: return "B-AND";
+		case BOR: return "B-OR";
+		case SL: return "<<";
+		case SR: return ">>";
+		case BNOT: return "B-NOT";
 		case GT: return "GT";
 		case '+': return "+";
 		case '-': return "-";
@@ -563,9 +564,14 @@ static char *translate(ast_t *node)
 		case COS: return "COS";
 		case TAN: return "TAN";
 		case LN: return "LN";
+		case INT: ;
+			char *integer;
+			mallocCheck(integer, sizeof(char) * 33);
+			sprintf(integer, "%ld", node->u.integer);
+			return strcat(strcpy(leaf, "INT: "), integer);
 		case FLOAT: ;
 			char *number;
-			mallocCheck(number, sizeof(char) * 5)
+			mallocCheck(number, sizeof(char) * 33);
 			return strcat(strcpy(leaf, "NUM: "), gcvt(node->u.real, 2, number));
 		case STR: return strcat(strcpy(leaf, "STR: "), node->u.str);
 		case WHILE: return "WHILE";
@@ -579,7 +585,7 @@ static char *translate(ast_t *node)
 
 void print_tree(FILE *f, ast_t *node, int space)
 {
-	if (node->u.child.left != NULL && node->tag != STR && node->tag != FLOAT && node->tag != ID)
+	if (node->u.child.left != NULL && node->tag != STR && node->tag != INT && node->tag != FLOAT && node->tag != ID)
 		print_tree(f, node->u.child.left, space + 8);
 
 	fprintf(f, "\n");
@@ -587,6 +593,6 @@ void print_tree(FILE *f, ast_t *node, int space)
 		fprintf(f, " ");
 	fprintf(f, "%s\n", translate(node));
 
-	if (node->u.child.right != NULL && node->tag != STR && node->tag != FLOAT && node->tag != ID)
+	if (node->u.child.right != NULL && node->tag != STR && node->tag != INT && node->tag != FLOAT && node->tag != ID)
 		print_tree(f, node->u.child.right, space + 8);
 }
