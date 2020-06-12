@@ -21,6 +21,7 @@ typedef struct ast_s {
 	} u;
 } ast_t;
 
+/* Funciones de ast.c */
 ast_t *newLeafString(unsigned tag, char *str);
 ast_t *newLeafNum(unsigned tag, double dval);
 ast_t *newLeafInt(unsigned tag, long int);

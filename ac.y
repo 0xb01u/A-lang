@@ -101,10 +101,12 @@ BLOCK
 
  /* Grupo de sentencias */
 SENTENCE_GROUP
+	/* Un único elemento de un programa */
 	: PROGRAM_ELEMENT
 	{
 		$$ = $1;
 	}
+	/* Un grupo de sentencias y un elemento del programa (recursivo) */
 	| SENTENCE_GROUP PROGRAM_ELEMENT
 	{
 		$$.type = AST_NODE_id;
@@ -154,92 +156,111 @@ SENTENCE
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(READ, newLeafString(STR, $2.u.string), newLeafString(ID, $3.u.string));
 	}
+	/* Bucle while */
 	| WHILE '(' EXPR ')' SENTENCE
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(WHILE, $3.u.node, $5.u.node);
 	}
+	/* Condicional if-else */
 	| IF '(' EXPR ')' SENTENCE ELSE SENTENCE
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode('g', NULL, newRoot('r', newRoot('r', NULL, newNode(IF, $3.u.node, $5.u.node)), newNode(ELSE, $3.u.node, $7.u.node)));
 	}
+	/* Condicional if */
 	| IF '(' EXPR ')' SENTENCE
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(IF, $3.u.node, $5.u.node);
 	};
 
+ /* Expresiones */
 EXPR
+	/* Igualdad lógica */
 	: EXPR EQ EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(EQ, $1.u.node, $3.u.node);
 	}
+	/* Desigualdad lógica */
 	| EXPR NE EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(NE, $1.u.node, $3.u.node);
 	}
+	/* And lógico */
 	| EXPR LAND EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(LAND, $1.u.node, $3.u.node);
 	}
+	/* Or lógico */
 	| EXPR LOR EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(LOR, $1.u.node, $3.u.node);
 	}
+	/* Menor que */
 	| EXPR LT EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(LT, $1.u.node, $3.u.node);
 	}
+	/* Mayor que */
 	| EXPR GT EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(GT, $1.u.node, $3.u.node);
 	}
+	/* Suma aritmética */
 	| EXPR '+' EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode('+', $1.u.node, $3.u.node);
 	}
+	/* Resta aritmética */
 	| EXPR '-' EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode('-', $1.u.node, $3.u.node);
 	}
+	/* Multiplicación aritmética */
 	| EXPR '*' EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode('*', $1.u.node, $3.u.node);
 	}
+	/* División aritmética */
 	| EXPR '/' EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode('/', $1.u.node, $3.u.node);
 	}
+	/* Módulo */
 	| EXPR '%' EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode('%', $1.u.node, $3.u.node);
 	}
+	/* Potencia */
 	| EXPR '^' EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode('^', $1.u.node, $3.u.node);
 	}
+	/* Operación cociente */
 	| EXPR DIV EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(DIV, $1.u.node, $3.u.node);
 	}
+	/* Mantenimiento de signo */
 	| '+' EXPR %prec UNARY
 	{
 		$$ = $2;
 	}
+	/* Cambio de signo */
 	| '-' EXPR %prec UNARY
 	{
 		$$.type = AST_NODE_id;
@@ -249,61 +270,73 @@ EXPR
 	{
 		$$ = $2;
 	}
+	/* Bit-and */
 	| EXPR BAND EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(BAND, $1.u.node, $3.u.node);
 	}
+	/* Bit-or */
 	| EXPR BOR EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(BOR, $1.u.node, $3.u.node);
 	}
+	/* Bit-not */
 	| BNOT EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(BNOT, NULL, $2.u.node);
 	}
+	/* Shift left */
 	| EXPR SL EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(SL, $1.u.node, $3.u.node);		
 	}
+	/* Shift right */
 	| EXPR SR EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(SR, $1.u.node, $3.u.node);		
 	}
+	/* Número real */
 	| FLOAT
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newLeafNum(FLOAT, $1.u.real_value);
 	}
+	/* Número entero */
 	| INT
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newLeafInt(INT, $1.u.int_value);
 	}
+	/* Variable */
 	| ID
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newLeafString(ID, $1.u.string);
 	}
+	/* Seno */
 	| SIN '(' EXPR ')'
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(SIN, $3.u.node, NULL);
 	}
+	/* Coseno */
 	| COS '(' EXPR ')'
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(COS, $3.u.node, NULL);
 	}
+	/* Tangente */
 	| TAN '(' EXPR ')'
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(TAN, $3.u.node, NULL);
 	}
+	/* Logaritmo neperiano */
 	| LN '(' EXPR ')'
 	{
 		$$.type = AST_NODE_id;
@@ -324,14 +357,17 @@ int yyerror(char *error)
 
 int main(int argc, char *argv[])
 {
+	/* Comprobación de corrección de argumentos */
 	if (argc < 2 || argc > 3 || (argc == 3 && strcmp("-t", argv[2]) != 0))
 	{
 		printf("Uso: ./ac <fichero> [-t]\n");
 		exit(FILE_ERROR);
 	}
 
+	/* Nombre del fichero */
 	strcpy(programName, argv[1]);
 
+	/* Lectura del fichero */
 	yyin = fopen(programName, "rb");
 	if (yyin == NULL)
 	{
@@ -339,6 +375,7 @@ int main(int argc, char *argv[])
 		exit(FILE_ERROR);
 	}
 
+	/* Parseo */
 	if (yyparse() != PARSE_SUCCESS)
 	{
 		fclose(yyin);
@@ -348,8 +385,10 @@ int main(int argc, char *argv[])
 
 	fclose(yyin);
 
+	/* Recorrido del árbol */
 	if (ast != NULL)
 	{
+		/* Impresión, si se ha utilizado la opción -t */
 		if (argc == 3 && strcmp("-t", argv[2]) == 0)
 		{
 			char *treeFilename;
@@ -372,6 +411,7 @@ int main(int argc, char *argv[])
 			}
 			fclose(treeFile);
 		}
+		/* Evaluación del árbol */
 		process(ast);
 	}
 	else

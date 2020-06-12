@@ -21,6 +21,7 @@
 #define ILEGAL_OPERATION	-6
 #define MEMORY_ERROR		-7
 
+/* Malloc con comprobación automática de errores */
 #define mallocCheck(ptr, size) { \
 	if ((ptr = malloc(size)) == NULL) \
 	{ \

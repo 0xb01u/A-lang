@@ -17,6 +17,7 @@
 extern int yylineno;
 extern char programName[];
 
+/* Creación de una hoja con valor de cadena de caracteres */
 ast_t *newLeafString(unsigned tag, char *str)
 {
 	ast_t *res;
@@ -27,7 +28,7 @@ ast_t *newLeafString(unsigned tag, char *str)
 	return res;
 }
 
-
+/* Creación de una hoja con valor de número real */
 ast_t *newLeafNum(unsigned tag, double dval)
 {
 	ast_t *res;
@@ -38,7 +39,7 @@ ast_t *newLeafNum(unsigned tag, double dval)
 	return res;
 }
 
-
+/* Creación de una hoja con valor de número entero */
 ast_t *newLeafInt(unsigned tag, long val)
 {
 	ast_t *res;
@@ -49,6 +50,7 @@ ast_t *newLeafInt(unsigned tag, long val)
 	return res;
 }
 
+/* Creación de un nodo no hoja */
 ast_t *newNode(unsigned tag, ast_t *l, ast_t *r)
 {
 	ast_t *res;
@@ -60,6 +62,7 @@ ast_t *newNode(unsigned tag, ast_t *l, ast_t *r)
 	return res;
 }
 
+/* Creación-actualización de la raíz del árbol */
 ast_t *newRoot(unsigned tag, ast_t *lst, ast_t *nd)
 {
 	if (lst == NULL) {
@@ -81,6 +84,7 @@ ast_t *newRoot(unsigned tag, ast_t *lst, ast_t *nd)
 	return lst;
 }
 
+/* Evaluar expresión del AST */
 static symbol evaluateExpr(ast_t *node)
 {
 	symbol value;	/* Valor de la expresión */
@@ -447,8 +451,7 @@ static symbol evaluateExpr(ast_t *node)
 	}
 }
 
-
-
+/* Evaluar nodo-sentencia del AST */
 static void evaluateNode(ast_t *node)
 {
 	switch (node->tag)
@@ -576,7 +579,7 @@ static void evaluateNode(ast_t *node)
 	}
 }
 
-
+/* Procesar un AST a partir de su raíz */
 void process(ast_t *root)
 {
 	while (root != NULL)
@@ -587,6 +590,7 @@ void process(ast_t *root)
 	}
 }
 
+/* Transformar un nodo en una String para su impresión */
 static char *translate(ast_t *node)
 {
 	char *leaf;
@@ -637,6 +641,7 @@ static char *translate(ast_t *node)
 	}
 }
 
+/* Imprimir recursivamente un árbol a partir del nodo actual */
 void print_tree(FILE *f, ast_t *node, int space)
 {
 	if (node->u.child.left != NULL && node->tag != STR && node->tag != INT && node->tag != FLOAT && node->tag != ID)
