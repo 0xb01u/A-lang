@@ -26,5 +26,6 @@ ast_t *newNode(unsigned tag, ast_t *l, ast_t *r);
 ast_t *newRoot(unsigned tag, ast_t *lst, ast_t *nd);
 
 void process(ast_t *root);
+void print_tree(FILE *f, ast_t *node, int space);
 
 #endif

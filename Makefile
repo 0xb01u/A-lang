@@ -20,7 +20,7 @@ $(LEXICAL):
 	lex -o $(LEX_NAME) $?
 
 $(SYNTAX):
-	yacc --defines -o $(SYN_NAME) $?
+	yacc --defines -v -o $(SYN_NAME) $?
 
 clean:
 	rm ac ac.lex.c ac.syn.*

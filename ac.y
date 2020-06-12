@@ -51,30 +51,30 @@ static ast_t *ast = NULL;
 %token <s> STR
 %term WHILE IF ELSE DEL_BL_A DEL_BL_C
 
-%type <s> PROGRAM BLOCK SENTENCE_GROUP SENTENCE EXPR
+%type <s> PROGRAM PROGRAM_ELEMENT BLOCK SENTENCE_GROUP SENTENCE EXPR
 
 %%
 
  /* Producciones de un programa */
 PROGRAM
 	/* Un único bloque de programa */
-	: BLOCK
+	: PROGRAM_ELEMENT
 	{
 		ast = newRoot('r', ast, $1.u.node);
 	}
 	/* Varios bloques de programa */
-	| PROGRAM BLOCK
+	| PROGRAM PROGRAM_ELEMENT
 	{
 		ast = newRoot('r', ast, $2.u.node);
-	};
+	}
+	;
 
- /* Bloque de programa */
-BLOCK
+ /* Elemento del programa */
+PROGRAM_ELEMENT
 	/* Una sentencia */
 	: SENTENCE '\n'
 	{
-		$$.type = AST_NODE_id;
-		$$.u.node = newNode('s', NULL, $1.u.node);
+		$$ = $1;
 	}
 	/* Sentencia vacía */
 	| '\n'
@@ -82,8 +82,11 @@ BLOCK
 		$$.type = AST_NODE_id;
 		$$.u.node = NULL;
 	}
-	/* Grupo de sentencias entre corchetes */
-	| DEL_BL_A SENTENCE_GROUP DEL_BL_C
+	;
+
+ /* Bloque de sentencias */
+BLOCK
+	: DEL_BL_A SENTENCE_GROUP DEL_BL_C
 	{
 		$$ = $2;
 	}
@@ -91,23 +94,25 @@ BLOCK
 
  /* Grupo de sentencias */
 SENTENCE_GROUP
-	/* Bloque de sentencias */
-	: BLOCK
+	: PROGRAM_ELEMENT
 	{
 		$$ = $1;
 	}
-	/* Grupo de sentencias y una sentencia (recursivo) */
-	| SENTENCE_GROUP SENTENCE '\n'
+	| SENTENCE_GROUP PROGRAM_ELEMENT
 	{
 		$$.type = AST_NODE_id;
-		$$.u.node = newNode('s', NULL, $2.u.node);
+		$$.u.node = newNode('g', NULL, newRoot('r', $1.u.node, $2.u.node));
 	}
 	;
 
  /* Sentencias */
 SENTENCE
+	: BLOCK
+	{
+		$$ = $1;
+	}
 	/* Asignación */
-	: ID '=' EXPR
+	| ID '=' EXPR
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode('=', newLeafString(ID, $1.u.string), $3.u.node);
@@ -142,19 +147,19 @@ SENTENCE
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(READ, newLeafString(STR, $2.u.string), newLeafString(ID, $3.u.string));
 	}
-	| WHILE '(' EXPR ')' BLOCK
+	| WHILE '(' EXPR ')' SENTENCE
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(WHILE, $3.u.node, $5.u.node);
 	}
 	/* TODO: FOR? */
-	| IF '(' EXPR ')' BLOCK ELSE BLOCK
+	| IF '(' EXPR ')' SENTENCE ELSE SENTENCE
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(IF, $3.u.node, $5.u.node);
 		$$.u.node = newNode(ELSE, $3.u.node, $7.u.node);
 	}
-	| IF '(' EXPR ')' BLOCK
+	| IF '(' EXPR ')' SENTENCE
 	{
 		$$.type = AST_NODE_id;
 		$$.u.node = newNode(IF, $3.u.node, $5.u.node);
@@ -274,10 +279,10 @@ int yyerror(char *error)
 
 int main(int argc, char *argv[])
 {
-	if (argc != 2)
+	if (argc < 2 || argc > 3 || (argc == 3 && strcmp("-t", argv[2]) != 0))
 	{
-		printf("Uso: ./ac <fichero>");
-		return SYNTAX_ERROR;
+		printf("Uso: ./ac <fichero> [-t]");
+		exit(FILE_ERROR);
 	}
 
 	strcpy(programName, argv[1]);
@@ -286,19 +291,42 @@ int main(int argc, char *argv[])
 	if (yyin == NULL)
 	{
 		fprintf(stderr, "Error intentando abrir el fichero %s\n", programName);
-		return FILE_ERROR;
+		exit(FILE_ERROR);
 	}
 
 	if (yyparse() != PARSE_SUCCESS)
 	{
 		fclose(yyin);
-		fprintf(stderr, "Compilación abortada.\n");
+		fprintf(stderr, "Compilacion abortada.\n");
+		exit(SYNTAX_ERROR);
 	}
 
 	fclose(yyin);
 
 	if (ast != NULL)
 	{
+		if (argc == 3 && strcmp("-t", argv[2]) == 0)
+		{
+			char *treeFilename;
+			mallocCheck(treeFilename, sizeof(char) * strlen(programName) + 6);
+			strcpy(treeFilename, programName);
+			treeFilename[strlen(programName)] = '.';
+			treeFilename[strlen(programName) + 1] = 't';
+			treeFilename[strlen(programName) + 2] = 'r';
+			treeFilename[strlen(programName) + 3] = 'e';
+			treeFilename[strlen(programName) + 4] = 'e';
+			treeFilename[strlen(programName) + 5] = '\0';
+			FILE *treeFile = fopen(treeFilename, "w");
+			if (treeFile == NULL)
+			{
+				fprintf(stderr, "Error al exportar el AST.\n");
+			}
+			else
+			{
+				print_tree(treeFile, ast, 0);
+			}
+			fclose(treeFile);
+		}
 		process(ast);
 	}
 	else

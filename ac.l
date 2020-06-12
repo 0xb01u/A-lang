@@ -15,28 +15,28 @@
 #define KWORDSN 10
 
 char *keyWords[KWORDSN] = {
-	"read"
-	"print"
-	"if"
-	"else"
-	"while"
-	"sin"
-	"cos"
-	"tan"
-	"ln"
-	"div"
+	"cos",
+	"div",
+	"else",
+	"if",
+	"ln",
+	"print",
+	"read",
+	"sin",
+	"tan",
+	"while",
 };
 unsigned keyCodes[KWORDSN] = {
-	READ,
-	PRINT,
-	IF,
-	ELSE,
-	WHILE,
-	SIN,
 	COS,
-	TAN,
-	LN,
 	DIV,
+	ELSE,
+	IF,
+	LN,
+	PRINT,
+	READ,
+	SIN,
+	TAN,
+	WHILE,
 };
 
 int yywrap(void) { return 1; }
@@ -56,8 +56,8 @@ FLOAT		(({NUMBER}"."{DIGIT}*)|({DIGIT}*"."{NUMBER}))
 
 ID			({LETTER}({LETTER}|{DIGIT})*)
 
-DEL_BL_A	([{{WSPC}*\n])
-DEL_BL_C	([}{WSPC}*\n])
+DEL_BL_A	(\{)
+DEL_BL_C	(\})
 
 WSPC		([ \t\f\r])
 WSCPS		({WSPC}+)
@@ -70,32 +70,43 @@ STR_START	(["])
 
 LINE_COMM	("//".*\n)
 
-COMM ("/*"[.|\n]*"*/")
+COMM ("/*"(.|\n)*"*/")
 
 %%
 
 [\n]	{	/*Salto de linea*/
-			++yylineno;
+			yylineno++;
 			return yytext[0];
 		}
 
-{WSPC}|{LINE_COMM}	;
+{DEL_BL_A}	return DEL_BL_A;
+
+{DEL_BL_C}	return DEL_BL_C;
+
+{WSPC}	;
+
+{LINE_COMM}	{
+			yylineno++;
+			return '\n';
+		}
 
 {COMM}	{	/*Cuenta las líneas que ocupa el comentario*/
 			for (int i = 0; i < strlen(yytext); i++)
 			{
 				if (yytext[0] == '\n') yylineno++;
 			}
+
+			return '\n';
 		}
 
 {ID}	{
 			unsigned i = 0;
 			int r = -1;
-			char *res;
 			
 			/*Recorre el listado de palabras clave para ver si la introducida lo es*/
-			while (i<KWORDSN && r<0) {
-				if ((r = strcmp(keyWords[i],yytext)) == 0) return keyCodes[i];
+			while (i<KWORDSN && r<0)
+			{
+				if ((r = strcmp(keyWords[i], yytext)) == 0) return keyCodes[i];
 				++i;
 			}
 			/*Si no es una palabra clave y lo devuelve como identificador*/
@@ -172,15 +183,16 @@ static void addStr(char **s, unsigned long *len, char c)
 static char *readStr()
 {
 	int c;
-	char *buff = (char *)malloc(sizeof(char) * 257);
+	char *buff;
+	mallocCheck(buff, sizeof(char) * 257);
 	unsigned long len = 256;
 	
 	buff[0] = '\0';
 	
 	do {
-		c == input();
+		c = input();
 		if (c < ' ')
-			fprintf(stderr, "%s(%d): error -- Simbolo no esperado en cadena de caracteres: %c\n", programName, yylineno, c);
+			fprintf(stderr, "%s(%d): error -- Simbolo no esperado en cadena de caracteres: %d\n", programName, yylineno, c);
 		if (c == '"') break;
 		if (c == '\\')
 		{

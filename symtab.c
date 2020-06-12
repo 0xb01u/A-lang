@@ -43,7 +43,10 @@ static int hash(char *s)
 {
 	int h = 0;
 	int i = 0;
-	while (s[i] != 0) h = 31*h + s[i++];
+	for (int i = 0; i < strlen(s); i++)
+	{
+		h = 31*h + s[i++];
+	}
 	return abs(h);
 }
 
@@ -65,8 +68,9 @@ static void step(char *s, int *pos)
 static int pos(char *id)
 {
 	int pos = first(id);
-	while (strcmp(id, symTab[pos].id) != 0)
+	while (symTab[pos].id != NULL && strcmp(id, symTab[pos].id) != 0)
 	{
+		printf("%s\n", id);
 		if (symTab[pos].used)
 		{
 			return SYMTAB_NOT_FOUND;
