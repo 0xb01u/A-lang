@@ -161,9 +161,8 @@ SENTENCE
 	}
 	| IF '(' EXPR ')' SENTENCE ELSE SENTENCE
 	{
-		ast = newRoot('r', ast, newNode(IF, $3.u.node, $5.u.node));
 		$$.type = AST_NODE_id;
-		$$.u.node = newNode(ELSE, $3.u.node, $7.u.node);
+		$$.u.node = newNode('g', NULL, newRoot('r', newRoot('r', NULL, newNode(IF, $3.u.node, $5.u.node)), newNode(ELSE, $3.u.node, $7.u.node)));
 	}
 	| IF '(' EXPR ')' SENTENCE
 	{

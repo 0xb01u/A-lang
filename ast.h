@@ -13,7 +13,7 @@ typedef struct ast_s {
 	unsigned lineNum;
 	union {
 		struct {
-			struct ast_s *left, *right;
+			struct ast_s *left, *right, *rightElse;
 		} child;
 		char *str;
 		double real;
