@@ -1,3 +1,7 @@
+# Compilador de A - Proyecto final GLF
+# Manuel de Castro Caballero, María Ruiz Molina, Andrés Trigueros Vega
+# Curso 2019-2020
+
 LIBS=-lm
 LEXICAL=lex ac.lex.c
 LEX_DEP=ac.l ac.syn.h
