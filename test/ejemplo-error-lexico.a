@@ -1,0 +1,5 @@
+x = 0
+read y
+z = x + y
+print z
+@no soy un comentario
