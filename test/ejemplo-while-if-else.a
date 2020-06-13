@@ -7,5 +7,4 @@ while (x < 6) {
 	}
 	x = x + 1
 }
-print "Mira que majo " x
-
+print "Valor final: " x

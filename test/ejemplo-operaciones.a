@@ -45,4 +45,3 @@ z = ---x
 print "Valor de x tras ser negado tres veces: " z
 z2 = +++x
 print "Valor de x tras aplicar tres veces el operador unario '+': " z2
-
