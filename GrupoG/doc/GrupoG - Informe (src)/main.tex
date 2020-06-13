@@ -1,0 +1,436 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8x]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{indentfirst}
+\usepackage[T1]{fontenc}
+
+\usepackage{amssymb,amsmath,amsthm,amsfonts}
+\usepackage{calc}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{subfigure}
+\usepackage{csvsimple}
+\usepackage{gensymb}
+\usepackage{natbib}
+\usepackage{eurosym}
+\usepackage{url}
+\graphicspath{{images/}}
+\usepackage{fancyhdr}
+\usepackage{vmargin}
+\usepackage[dvipsnames]{xcolor}
+\setmarginsrb{3 cm}{2.5 cm}{3 cm}{2.5 cm}{1 cm}{1.5 cm}{1 cm}{1.5 cm}
+\definecolor{azul_url}{HTML}{154360}
+\hypersetup{
+linkcolor=black,
+citecolor=black,
+colorlinks=true,
+urlcolor=azul_url}
+
+\title{Informe Proyecto P3}					% Titulo
+\author{Manuel de Castro Caballero \\ María Ruiz Molina \\ Andrés Trigueros Vega}				% Autor
+\date{\today}						% Fecha
+
+
+\makeatletter
+\let\thetitle\@title
+\let\theauthor\@author
+\let\thedate\@date
+\makeatother
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\theauthor}
+\lhead{\thetitle}
+\cfoot{\thepage}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{titlepage}
+	\centering
+    \vspace*{0.0 cm}
+    \includegraphics[scale = 0.5]{Logo.png}\\[1.0 cm]	% Logo Universidad
+    \textsc{\LARGE Universidad de Valladolid}\\[2.0 cm]	% Nombre Universidad
+	\textsc{\Large Grupo G}\\[0.5 cm]				% Codigo Curso
+	\textsc{\large Gramática y lenguajes formales}\\[0.5 cm]		% Nombre Curso
+	\rule{\linewidth}{0.2 mm} \\[0.4 cm]
+	{ \huge \bfseries \thetitle}\\
+	\rule{\linewidth}{0.2 mm} \\[1.5 cm]
+	
+	\begin{minipage}{0.6\textwidth}
+		\begin{center} \large
+			%\emph{Autores:}\par
+			\theauthor\linebreak
+			\end{center}
+	\end{minipage}\\[1 cm]
+	
+	{\large \thedate}\\[2 cm]
+ 
+	\vfill
+	
+\end{titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tableofcontents
+\pagebreak
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introducción}
+Este proyecto ha consistido en el desarrollo de un intérprete de un lenguaje de programación \texttt{A}, empleando \texttt{lex} y \texttt{yacc}\footnote{más concretamente, sus respectivas implementaciones como \texttt{flex} y \texttt{bison}} para realizar los analizadores léxico y sintáctico, respectivamente, del mismo. Además, se ha optado por utilizar un \textit{AST}, para compilar el lenguaje a una representación intermedia, produciendo un intérprete más original y sofisticado.\par
+\texttt{A} es un lenguaje de programación básico, de baja potencia expresiva, no tipado, derivado (principalmente) del archiconocido lenguaje de programación \texttt{C}. El lenguaje no está enfocado con ningún propósito real concreto, sino como una ``prueba de concepto'' de un lenguaje de programación sencillo pero perfectamente funcional, con las que se puedan realizar las tareas más básicas esperables de un lenguaje de programación.
+
+\section{Resumen de las especificaciones del lenguaje}
+Pese a ya haber redactado un documento previo específico donde se detallaban las especificaciones del lenguaje, se ha considerado conveniente realizar un resumen de las mismas en este documento, ya que algunas de ellas han sufrido modificaciones por inconvenientes que han ido surgiendo, y se ha añadido alguna más de las inicialmente especificadas.
+\subsection{Especificaciones léxicas iniciales revisadas}
+\begin{itemize}
+    \item \underline{Identificadores}:  Letra o un guión bajo, seguido por ninguna o varias letras, caracteres numéricos, o guiones bajos. Las letras, pueden ser tanto mayúsculas como minúsculas. \texttt{A} es un lenguaje sensible ante mayúsculas y minúsculas.
+    \item \underline{Constantes numéricas}: Las dos constantes numéricas definidas en el intérprete son:
+    \begin{itemize}
+        \item Reales:  Uno o más caracteres numéricos, seguidos de un punto, y cero o más caracteres numéricos o de un punto seguido de uno o más caracteres numéricos.
+        \item Enteras: Literales escritos en el sistema decimal conformadas por uno o más dígitos del sistema decimal.
+        
+    \end{itemize}
+    \item \underline{Separadores}: Para separar sentencias entre sí, se utiliza el carácter ``salto de línea'' (\texttt{\textbackslash n}). Para delimitar los bloques de sentencias, se utilizan los caracteres `\texttt{\{}' y `\texttt{\}}'.
+    \item \underline{Comentarios}: Los comentarios se pueden especificar de dos maneras: 
+    \begin{itemize}
+        \item Los comentarios de una sola línea, están compuestos por tiras de caracteres que comienzan por ``\texttt{//}'' y acaban con un salto de línea (``\texttt{\textbackslash n}''), teniendo una longitud arbitraria.
+        \item Los comentarios multilínea, están compuestos por tiras de caracteres que comienzan por ``\texttt{/*}'' y acaban con (``\texttt{*/}''), teniendo una longitud arbitraria.
+    \end{itemize}
+    \item \underline{Operadores aritméticos}:
+    \begin{itemize}
+        \item `\texttt{+}' : El operador binario ``suma'', que añade el valor de la primera expresión al valor de la segunda expresión.
+        \item `\texttt{-}' : El operador binario ``resta'', que substrae al valor de la segunda expresión, el valor de la primer expresión.
+        \item `\texttt{*}' : El operador binario ``multiplicación'', que suma el valor de la primera expresión tantas veces como indica el valor de la segunda expresión.
+        \item `\texttt{/}' : El operador binario ``división'', que realiza la multiplicación del valor de la primera expresión por el inverso del valor de la segunda expresión.
+        \item `\texttt{\textasciicircum}' : El operador binario ``exponenciación'', que multiplica el valor de la primera expresión tantas veces como indique el valor de la segunda expresión.
+        \item `\texttt{\%}' : El operador binario ``módulo'', ``resto'' o ``resíduo'', que devuelve el valor que hay que restarle a la primera expresión para que, al dividirlo entre la segunda expresión, devuelva un valor entero.
+        \item `\texttt{-}' : El operador unario ``cambio de signo'', que convierte el valor de la expresión en su opuesto.
+        \item `\texttt{+}' : El operador unario ``mantenimiento de signo'', que mantiene el valor de la expresión, y que se incluye por analogía al operador ``cambio de signo''.
+    \end{itemize}
+    \item \underline{Operadores lógicos}:
+    \begin{itemize}
+        \item `\texttt{==}' : El operador binario ``igualdad''; compara el valor del primer argumento con el del segundo, evaluándose al valor real `1' en caso de que sean el mismo, y `0' en caso contrario.
+        \item `\texttt{!=}' : El operador binario ``desigualdad''; compara el valor del primer argumento con el del segundo, evaluándose al valor real `1' en caso de que sean distintos, y a `0' en caso contrario.
+        \item `\texttt{<}' : El operador binario ``menor que''; compara el valor del primer argumento con el del segundo, evaluándose al valor real `1' en caso de que el primer valor sea menor que el segundo, y a `0' en caso contrario.
+        \item `\texttt{>}' : El operador binario ``mayor que''; compara el valor del primer argumento con el del segundo, evaluándose al valor real `1' en caso de que el primer valor sea mayor que el segundo, y a `0' en caso contrario.
+    \end{itemize}
+    \item \underline{Palabras clave}: 
+    \begin{itemize}
+        \item \texttt{read}: Dedicada a la lectura de valores numéricos por entrada estándar. Opcionalmente, puede imprimir un mensaje previo a dicha lectura.
+        \item \texttt{print}: Dedicada a la impresión de caracteres y valores de variables por salida estándar.
+        \item \texttt{if}: Dedicada a las sentencias condicionales.
+        \item \texttt{else}: Dedicada en conjunto con \texttt{if} a las sentencias condicionales.
+        \item \texttt{while}: Dedicada a los bucles.
+        \item Funciones predefinidas: Se consideran funciones aquellas que se puedan evaluar a un valor numérico:
+        \begin{itemize}
+            \item \texttt{sin}: Función real cuyo dominio es \mathbb{R} y su codominio el intervalo cerrado [-1, 1]. El seno es una función continua con periodo 2$\pi$.
+            \item \texttt{cos}: Función real cuyo dominio es \mathbb{R} y su codominio el intervalo cerrado [-1, 1]. El coseno es una función par y continua con periodo 2$\pi$.
+            \item \texttt{tan}: Función impar y con periodo $\pi$, con indeterminaciones en $\pi$ 2 + n $\pi$, n ∈ Z.
+            \item  \texttt{ln}: Función que aplica la función logaritmo neperiano a la expresión que va después.
+        \end{itemize}
+        \item \texttt{div}: Operador aritmético binario que devuelve el cociente de la división de la primera expresión entre la segunda.
+    \end{itemize}
+    \item \underline{Cadenas de caracteres}: Conformadas por una serie de símbolos del conjunto de caracteres ASCII escritos entre comillas dobles (`\texttt{``}' y `\texttt{''}')  que se emplearán para la impresión de textos.
+\end{itemize}
+
+\subsection{Especificaciones sintácticas iniciales revisadas}
+\subsubsection{Sentencias}
+Una sentencia es la unidad de ejecución mínima de un programa \texttt{A}.\par
+Las sentencias en \texttt{A} están formadas por:
+\begin{itemize}
+    \item Un identificador, un carácter `\texttt{=}' y una expresión.
+    \item La palabra reservada \texttt{if}, seguida de una expresión, una sentencia o bloque de sentencias, y, opcionalmente, de la palabra reservada \texttt{else} y una sentencia o bloque de sentencias.
+    \item La palabra reservada \texttt{while}, seguida de una expresión y una sentencia o bloque de sentencias.
+    \item La palabra reservada \texttt{print} y un conjunto no vacío de 0 o más cadenas de caracteres y 0 o más identificadores o variables.
+    \item La palabra reservada \texttt{read}, seguida o no por una cadena de caracteres, y seguida por un identificador.
+\end{itemize}
+Todas las sentencias van terminadas por un separador.\par
+Un \underline{bloque de sentencias} es un conjunto de una o varias sentencias agrupadas entre los correspondientes delimitadores de bloques.
+
+\subsubsection{Expresiones}
+Una expresión es una entidad que puede ser evaluada a un valor numérico (entero o real).\par
+En \texttt{A}, las expresiones pueden ser:
+\begin{itemize}
+    \item Un identificador (es decir, una variable con un valor asignado).
+    \item Una constante numérica real o entera.
+    \item Una expresión entre paréntesis `\texttt{(}' y `\texttt{)}'.
+    \item Un operador unario (aritmético o lógico) seguido de una expresión.
+    \item Una expresión seguida de un operador binario (aritmético o lógico) y otra expresión.
+    \item Una expresión, la palabra reservada de operador binario binaria \texttt{div}, y otra expresión.
+    \item Alguna de las palabras reservadas de funciones predefinidas unarias (\texttt{sin}, \texttt{cos}, \texttt{tan} o \texttt{ln}), y una expresión entre paréntesis.
+\end{itemize}
+
+\subsection{Añadidos}
+Respecto a las especificaciones inicialmente propuestas del lenguaje \texttt{A}, se han realizado los siguientes añadidos de \textbf{caracter principalmente léxico}:
+\begin{itemize}
+    \item \underline{Operadores lógicos}: Los operadores lógicos añadidos a los ya mencionados en las secciones previas son el \textit{and} lógico (\texttt{\&\&}) y el \textit{or} lógico (\texttt{||}). De manera análoga a los ya introducidos, estos simplemente son ejecutados, siguiendo su definición.
+    \item \underline{Operaciones de bit}: Se han añadido las operaciones de bit \textit{AND} (\texttt{\&}), \textit{OR} (\texttt{|}), \textit{NOT} (\texttt{\~{}}), \textit{shift left} ($<<$) y \textit{shift right} ($>>$). Estas solo se pueden realizar sobre números enteros, por lo que ha sido necesario añadir esta diferenciación, como se explica a continuación.
+    \item \underline{Diferenciación entre tipos ``entero'' y ``real''}. Esta característica ha sido bastante importante, pues a la hora de tratar con operaciones de bit tan solo se puede tratar con expresiones de tipo entero.\par Además de las respectivas nuevas reglas léxicas y producciones sintácticas, para implementar esta característica ha sido necesario diferenciar en el \texttt{AST} hojas de tipo ``número real'' y hojas de tipo ``número entero''.
+    \item \underline{Números hexadecimales}: Estos se identifican por comenzar con el prefijo ``\texttt{0x}'', seguido de uno o varios dígitos hexadecimales (números del \texttt{0} al \texttt{9} o letras, mayúsculas o minúsculas, de la `\texttt{a}'/`\texttt{A}' a la `\texttt{f}'/`\texttt{F}'). A la hora de trabajar con ellos, son tratados como números enteros.\par
+    Los números hexadecimales solo son aceptados en \texttt{A} como literales dentro del propio código; y no pueden ser leídos mediante una sentencia del tipo \texttt{read}.
+\end{itemize}\par
+Con respecto a \textbf{añadidos sintácticos}, se han añadido producciones a la gramática independiente del contexto para facilitar la interpretación de programas. De este modo, aunque la sentencia siga siendo la unidad básica de ejecución de un programa \texttt{A}, han de considerarse los siguientes componentes sintácticos:
+\begin{itemize}
+    \item Los \underline{programas}, formados por un \underline{elemento del programa}, o un \underline{programa} seguido de un \underline{elemento del programa}.
+    \item Los \underline{elementos del programa}, formados por una \underline{sentencia} (terminada en un salto de línea), o una \underline{sentencia vacía} (un salto de línea).\par
+    \item Los \underline{grupos de sentencias}, formados por un \underline{elemento del programa} o un \\ \underline{grupo de sentencias} seguido de un \underline{elemento del programa}. Aunque su definición sea equivalente a la de los \underline{programas}, se diferencian en su uso e interpretación dentro del intérprete.
+    \item Los \underline{bloques} pasan a ser \underline{grupos de sentencias} localizados entre los ya definidos delimitadores de bloques. Los \underline{bloques} siguen siendo \underline{sentencias} válidas.
+\end{itemize}\par
+Además, se ha realizado un añadido de tipo \textbf{funcional}:
+\begin{itemize}
+    \item \underline{Interpretación mostrando el árbol generado}: Esta característica poco o nada  tiene que ver con el proceso de interpretación del lenguaje, mucho menos con sus características léxicas, sintácticas o semánticas. Sin embargo, presenta una utilidad didáctica y de detección y corrección de errores importante, por lo que se ha decidido incluirla en la versión final del intérprete.\par Para ejecutar esta opción a la hora de realizar el proceso de interpretación de un programa, se debe introducir en la consola de comandos la opción \texttt{-t} después de la ruta del programa a interpretar. Esto generará un fichero cuyo prefijo es el nombre del programa interpretado, y cuyo sufijo es \texttt{.tree}. Dicho fichero contendrá, en texto plano, una representación ``en horizontal'' del árbol \texttt{AST} del programa interpretado, tal que los hijos izquierdos de cada nodo se sitúen por encima de sus padres, y, los derechos, por debajo.
+\end{itemize}
+
+\subsubsection{Propuestas desechadas}
+A lo largo del desarrollo del intérprete, se plantearon diversas propuestas de características adicionales, no inicialmente consideradas, que finalmente no llegaron a implementarse. Se detallan a continuación, junto con los motivos por los cuales fueron desechadas.
+\begin{itemize}
+    \item Bucles \textit{for}. Al tratarse de una variante de los bucles \textit{while}, ya implementados, se le dio a esta propuesta una prioridad muy baja. Pese a que su implementación es relativamente sencilla (aparentemente es una variación sintáctica de los bucles \textit{while}, generando más nodos en el \textit{AST}), no fueron implementados por falta de tiempo.
+    \item Funciones. Se intentaron plantear como generadores de árboles \textit{AST} adicionales; cada llamada a una función ejecutaría el código asociado a su respectivo \textit{AST}, realizando previamente el paso de argumentos. Finalmente, cuando se planteó el problema de cómo gestionar el ámbito (\textit{scope}) de las variables de distintas funciones, se descartó su implementación por su complejidad.
+    \item Macros sencillas, sin argumentos; tales como la definición de constantes en \texttt{C}. Éstas habrían requerido de otro paso adicional de análisis léxico y sintáctico, previo al realizado para interpretar un programa, que no se supo muy bien cómo abordarlo, deviniendo finalmente en el desecho de esta propuesta.
+\end{itemize}\par
+ 
+\section{Discusión de los ficheros fuente, y justificación de las decisiones de diseño e implementación}
+Para poder llevar a cabo la implementación del lenguaje \texttt{A}, se diferencia, tal y como se dijo en la introducción, la parte léxica en \texttt{lex} y la sintáctica en \texttt{yacc}. Además, la forma de interpretar el lenguaje pasa por un paso de compilación a código intermedio, implementado con un \textit{AST}; y todo el proceso de interpretación se apoya en el uso de una tabla de símbolos.\par
+Cabe destacar que, al primer fallo detectado, la interpretación de cualquier programa se termina. (La decisión de implementar esta característica es relativamente arbitraria.) El fallo es localizado en el programa mediante el número de línea en el que se ocasionó.
+\par
+A continuación se listan las distintas componentes del intérprete y sus ficheros fuente asociados, además de las decisiones de diseño detacables, relativas a cada una de ellas, propiamente justificadas. Como nota a tener en cuenta, se ha utilizado como guía de consulta el intérprete sencillo desarrollado por \textsc{Dušan Kolář}\footnote{se ha utilizado la versión presentada como \textit{inter05} en el campus virtual de la asignatura \textsc{Gramáticas y Lenguajes Formales} del grado en Ingeniería Informática de la Universidad de Valladolid}, con el que se podrán encontrar muchas similitudes.\par
+Los nombres del tipo \texttt{ac} son un acrónimo de \textit{\textbf{A c}ompiler}.
+
+\subsection{Lex - \texttt{ac.l}} 
+En este fichero están definidas las palabras reservadas, así como demás componentes léxicos del lenguaje \texttt{A}, y el tipo de escaneado que estos reciben.
+\par
+El criterio de selección del léxico ha sido altamente influenciado por otros lenguajes de programación, especialmente \texttt{C}, aunque también se han tenido en cuenta otros lenguajes de programación no tipados.
+\par
+Las operaciones aritméticas aceptadas por \texttt{A}, definidas en este fichero por sus componentes léxicas, son las básicas para poder trabajar a un nivel de cálculo sencillo (suma, resta, multiplicación, división, cambio de signo), además de alguna operación más exótica, como el módulo o el cociente entero. En cuanto a operadores lógicos, se admiten los operadores de conjunción \textit{and} y disyunción \textit{or}, además de los cuatro comparadores básicos: de igualdad, desigualdad, mayor que y menor que. No se admiten operadores de comparación del tipo ``mayor o igual que'' ni ``menor o igual que'' pues sus operaciones vienen implícitas con los ya definidos.
+\par
+Cuando el escáner detecta un número sin cifras decimales, se interpreta como entero; pero en caso de poseer cifras decimales (es decir, un punto al principio, al final, o en el medio del literal), se interpreta como número real y es tratado correspondientemente. Esta funcionalidad es crucial para realizar las distinciones entre expresiones con valor entero o real mencionadas en anteriores secciones.
+\par
+Con respecto a los comentarios, hay que destacar unas características importantes:
+\begin{itemize}
+    \item Los comentarios de una línea, al finalizar con un salto de línea explícito en su expresión léxica, han de incrementar el contador de líneas del programa, así como devolver un salto de línea como caracter leído, para asegurar el correcto funcionamiento sintáctico del programa.
+    \item Los comentarios multilínea, por su parte, deben hacer algo similar. En este caso, como el rango de líneas que abarcan puede ser una o muchas, y los saltos de línea no forman parte explícita de su expresión léxica, ha de contarse el número de saltos de línea incluidos en uno de estos comentarios para incrementar correctamente el contador de líneas del programa. Así mismo, en caso de que el número de saltos de línea contenidos en el comentario sea de uno o más, también ha de devolcerse un salto de línea como caracter leído.
+\end{itemize}
+Por tanto, a efectos prácticos, los comentarios de una línea actúan sintácticamente como saltos de línea; y los multílinea lo hacen siempre y cuando abarquen al menos un salto de línea.
+
+\subsection{Yacc - \texttt{ac.y}}
+En esta parte se define todo lo referente a la sintaxis del lenguaje \texttt{A}. Se define la estructura y el tipo de los \textit{tokens} con los que el intérprete trabaja.
+\par
+Entre dichos \textit{tokens} podemos encontrar los que representan la serie de operaciones con los que \texttt{A} trata, ordenados según sus prioridades y especificando el orden de su asociatividad. Además, hay un operador unario con no asociatividad definida, para poder especificar los casos de cambio de signo.
+
+\par
+La sintaxis del programa abarca los siguientes elementos (como podrá comprobarse, acorde a como ha sido descrita en las secciones anteriores):
+\begin{itemize}
+    \item Programa (\texttt{PROGRAM}), el cual está compuesto por uno o más elementos de programa.
+    \item Elemento de programa (\texttt{PROGRAM\_ELEMENT}), el cual está compuesto por una sentencia o una sentencia vacía.
+    \item Bloque (\texttt{BLOCK}), conformado por un grupo de sentencias delimitado por llaves o bien un salto de línea seguido de un grupo de sentencias delimitado por llaves.
+    \item Grupo de sentencias (\texttt{SENTENCE\_GROUP}), lo cual abarca uno o más elementos de programa.
+    \item Sentencia (\texttt{SENTENCE}), la cual puede ser o bien un bloque o bien la asignación de variables, impresión, lectura, bucles \textit{while} y estructuras \textit{if-else}.
+    \item Expresión (\texttt{EXPR}), que van desde expresiones aritméticas, lógicas, operaciones de bit o elementos de expresión mínimos tales que números, caracteres... con los que operar.
+\end{itemize}
+
+De esta manera, al crear un programa, los grupos de sentencias pueden generarse de manera recursiva a través de las producciones de elementos del programa.
+\par
+La idea implícita en los bloques es que, especificado mediante la etiqueta \texttt{g}, se crea un ``nuevo'' árbol \texttt{AST}. De esta manera se trata cada bloque de sentencias como si fuese un programa individual, que se ``unen'' al programa (\textit{AST}) más general. Mediante esta estructura, el intérprete permite producciones tales que se puedan generar bloques de sentencias agrupadas unas dentro de otras.
+\par
+Cada uno de estos elementos sintácticos produce la creación de un nuevo nodo, hoja, raíz, o nodo intermedio, en el árbol \textti{AST}, para su posterior tratamiento. Las expresiones terminales que refieren a números o cadenas de caracteres son aquellos que generan hojas en el árbol, y solo los elementos definidos como \textit{Programa} pueden ser raíces de dicho árbol. El resto de sintaxis genera nodos intermedios en el árbol, los cuales irán ramificándose en más nodos, según cada elemento sintáctico vaya derivando otros.
+\par
+
+\subsection{\textit{AST} - \texttt{ast.c} y \texttt{ast.h}}
+El árbol de sintaxis abstracta \textit{AST} es una forma de representación intermedia de código. Consiste en una estructura de tipo árbol en la que se van introduciendo cada una de las órdenes a interpretar como nodos, para su posterior tratamiento (interpretación).\par
+El árbol concreto implementado en este intérprete es de tipo binario, y está diseñado de tal forma que diferencian exclusivamente tres tipos de hojas: de tipo numérico, tanto entero como real, y de tipo \textit{String}.
+\par
+Cada vez que se genera un nuevo nodo, se genera con la etiqueta correspondiente al elemento introducido en el árbol. En caso de ser un nodo intermedio, se especifican las ramificaciones izquierda y derecha que tendrá. Esto se debe a que los nodos intermedios simbolizan una expresión, sentencia... que actúa sobre otras, las cuales están definidas como sus nodos hijo.
+\par
+Una vez estructurado el árbol, se van evaluando sus nodos, partiendo de la ráiz, y dependiendo del tipo (etiqueta) de estos, se lleva a cabo la operación correspondiente. Los resultados de la evaluación de nodos de expresión se devuelven como \textit{símbolos} (\texttt{symbol}), tipo de datos usado en la tabla de símbolos, y que se explicará en la siguiente sección.
+\par
+Para las expresiones aritméticas, lógicas y de bits, tan solo se aplica la operación correspondiente a los elementos involucrados. Se incluyen aquí las operaciones trigonométricas y de logaritmo neperiano definidas como funciones predefinidas del lenguaje. Para las evaluaciones de expresiones que tengan que ver con valores numéricos enteros, excepto para la división exacta \texttt{/} y el operador cociente \texttt{div}, se comprueba el tipo de la hoja izquierda y el de la derecha. En caso de que ambos sean enteros, el resultado del nodo se define como entero. Si alguno de ellos es real, el resultado se define como real. En los casos definidos anteriormente, la división exacta siempre produce resultados reales, y el operador cociente siempre los produce enteros.
+
+Para otros casos, definidos por sus respectivas etiquetas:
+\begin{itemize}
+    \item \texttt{=} introduce en la tabla de símbolos el hijo izquierdo como nombre de la variable y, como valor, la evaluación de su hijo derecho.
+    \item \texttt{PRINT} primero comprueba qué nodos hijos presenta el nodo (son distintos de \texttt{NULL}). En el caso de no existir el nodo izquierdo, imprime el valor del nodo de la derecha tras haber sido evaluado. En el caso de no existir el nodo derecho, se imprime la cadena de caracteres que haya en el nodo izquierdo por la salida predeterminada. En caso de que ambos hijos existan, se imprime la cadena de caracteres representada por el hijo izquierdo, seguida del valor evaluado del nodo de la derecha.
+    \item  \texttt{READ} comprueba la existencia de su hijo izquierdo, significando pues, si ha de mostrar por pantalla algún \textit{String} previamente a disponer la lectura del un valor por entrada estándar. La lectura del valor se realiza a la variable identificada por el valor de su hijo derecho.
+    \item \texttt{WHILE} primeramente comprueba que exista un nodo derecho, es decir, una sentencia o bloque de sentencias a ejecutar. En caso de no haberla, simplemente se ejecuta la condición del bucle una y otra vez, cosa que en \texttt{A} solo permite crear bucles infinitos. En caso de que sí que exista un hijo izquierdo, es decir, código a ejecutar, este es evaluado y ejecutado hasta que la condición del bucle deje de cumplirse.
+    \item  \texttt{IF} evalúa la condición encontrada en el nodo izquierdo. De cumplirse, se evalúa el nodo derecho.
+    \item  \texttt{ELSE}, al solo poder encontrarse dentro de una sentencia \texttt{IF-ELSE}, se evalúa la condición encontrada en el correspondiente \texttt{IF}, es decir, su hijo izquierdo. De no cumplirse, se evalúa el nodo derecho.
+    \item \texttt{g}, etiqueta que corresponde a un grupo de sentencias, causa la evaluación del \textit{AST} cuya raíz es el hijo derecho de este nodo. Dicho \textit{AST} corresponde al conjunto de sentencias agrupadas que dieron lugar al nodo de etiqueta \texttt{g}. Los nodos con esta etiqueta, se entiende que no pueden tener hijos derechos.
+    \item \texttt{r} es una etiqueta correspondiente a nodos creados por la detección de sentencias en el programa. Los nodos con esta etiqueta no son evaluados. Dada la estructura del árbol, estos nodos simplemente indican si existen más sentencias a evaluar, definiéndose dichas sentencias en sus hijos izquierdos, de existir. El proceso de evaluación de un \textit{AST} consiste en recorrer, mientras los haya, los nodos con esta etiqueta, evaluando para cada uno de ellos su hijo izquierdo (en caso de existir).
+\end{itemize}
+    
+\subsection{Tabla de símbolos - \texttt{symtab.c} y \texttt{symtab.h}}
+En la tabla de símbolos se almacenan las variables, definidas por sus identificadores y sus valores correspondientes. Para su implementación se utiliza una tabla \textit{hash}, pues permite realizar esta estructuración de manera bastante eficiente y directa, accediendo a los elementos de manera más rápida de lo que lo harían otras clases de estructuras, como los árboles binarios de búsqueda.\par
+La tabla de símbolos cuenta con dos operaciones fundamentales: \textbf{insertar o editar} una entrada de la tabla, dado el identificador de una variable y su nuevo valor; y \textbf{obtener} el valor de una variable, dado su identificador.\par
+A nivel de implementación, la tabla de símbolos almacena \textit{símbolos} (\texttt{symbol}), un tipo de datos formado por un identifcador de tipo (número real o número entero), y su correspondiente valor. Esta distinción implícita de tipos es necesaria para permitir ciertas operaciones (notablemente, las operaciones de bits). Este tipo de datos es utilizado también dentro del árbol \textit{AST}, a la hora de interpretar los resultados de las expresiones, como se ha indicado con anterioridad\par
+La tabla de símbolos, al implementarse como una tabla \textit{hash}, dispone de un sistema automático de redimensionamiento en caso de que el número de símbolos almacenados supere cierto valor relativo al tamaño de la tabla. Pese a que el límite inicial establecido de 128 símbolos es bastante generoso, se he decidido implementar este redimensionamiento para simular el funcionamiento de un intérprete más sofisticado.
+
+\subsection{Utilidades - \texttt{autils.h}}
+Con motivo de mejorar la organización y presentación del código, se ha elaborado un fichero de cabecera que incluye algunas definiciones y macros utilizadas a lo largo del resto de ficheros fuente. En él se incluyen los identificadores numéricos de los \textit{tokens} sintácticos, los códigos devueltos por el programa en caso de error, y una macro para reservar memoria, y comprobar la corrección de dicha reserva.
+
+\subsection{Bibliotecas de C utilizadas}
+A continuación se listan las biblioteca de \texttt{C} que se han incluido en los ficheros fuente del intérprete, explicando detalladamente los motivos para su inclusión.
+\begin{itemize}
+    \item[--] \texttt{stdio.h}: por motivos obvios, ha de utilizarse la biblioteca estándar para entrada y salida de datos. Esta biblioteca permite, directamente, la lectura y el tratamiento de ficheros, como los programas \texttt{A} a interpretar. Además, permite la impresión de mensajes (como los mensajes de error a la hora de interpretar programas, o las propias impresiones declaradas en los programas) y la lectura de datos introducidos por el usuario.
+    \item[--] \texttt{stdlib.h}: al igual que en el caso anterior, la biblioteca estándar de \texttt{C} es necesaria para desarrollar cualquier programa relativamente complejo. Su inclusión permite la utilización de funciones de gran utilidad, como \texttt{malloc()} y \texttt{free()}, para le gestión de memoria, o \texttt{exit()} para la finalización prematura de la interpretación en caso de errores.
+    \item[--] \texttt{string.h}: aporta múltiples funciones de utilidad a la hora de trabajar con cadenas de caracteres, como \texttt{strlen()}, para obtener la longitud de una cadena de caracteres, \texttt{strcmp()}, para comparar cadenas, y \texttt{strcat()}, para concatenar varias cadenas en una. Su uso es notable en los ficheros \texttt{ast.c} y \texttt{symtab.c}.
+    \item[--] \texttt{math.h}: permite la utilización de funciones matemáticas comunes, como \texttt{sin()}, \texttt{cos()}, \texttt{tan()}, \texttt{ln()} o \texttt{fmod()}. Su inclusión es esencial para implementar las funciones predefinidas de \texttt{A}.
+    \item[--] \texttt{stdbool.h}: se utiliza por comodidad, y su inclusión no es estrictamente necesaria. El principal motivo por el que se ha incluido es parafacilitar la lectura del código fuente en alguna sección concreta.
+\end{itemize}
+
+\section{Compilación y ejecución del intérprete}
+En el directorio \texttt{src} del proyecto se pueden encontrar todos los ficheros fuente definidos en la sección anterior. Acompañándolos, también se encuentra un fichero \texttt{Makefile} capaz de compilar automáticamente el intérprete, sin ningún esfuerzo.\par
+Cada vez que se desee recompilar el intérprete, para asegurar la corrección del proceso, han de ejecutarse, en el orden indicado, los siguientes comandos de terminal \textsc{Unix} en el directorio \texttt{src} (el símbolo \texttt{\$} indica el \textit{prompt} de la terminal, y no ha de ser introducido):
+\begin{verbatim}
+    $ make clean
+    $ make
+\end{verbatim}\par
+Tras la compilación del intérprete, se generará en el directorio un fichero ejecutable \texttt{ac} (además de otros ficheros intermedios para la compilación). Este ejecutable es el intérprete en sí, y ejecutarlo indicando la ruta de un programa \texttt{A} producirá la interpretación de dicho programa.\par
+El intérprete puede probarse con los ficheros de prueba que se incluyen en el directorio \texttt{test}, tal y como se indica en la siguiente sección.
+
+\section{Ejemplos desarrollados}
+En el directorio de \texttt{test} se pueden encontrar diversos ficheros con la extensión \texttt{.a}, los cuales son interpretables como ficheros en código \texttt{A} (pese al uso habitual de esta extensión). Estos ejemplos sirven para demostrar el funcionamiento correcto de cada uno de los aspectos desarrollados en la práctica, así como de algunos incorrectos. En concreto son:
+\begin{itemize}
+    \item Cálculo de la media (\texttt{media.a}): Este ejemplo trata de simular un programa más o menos sotisficado en código \texttt{A}.\par
+    En él, se ejecuta una sentencia \texttt{while} en la que se va pidiendo en cada iteración un valor para calcular la media de este y los anteriores introducidos, y otro valor ``de control'', para saber si se pretende seguir introduciendo números. Los números que se van introduciendo se van sumando en una variable llamada \texttt{suma}. Finalmente, cuando el usuario introduce un valor de control distinto de \texttt{1}, se deja de cumplir la condición del \texttt{while}, no volviendo iterar e imprimiendo el valor medio de todos los valores introducidos por el usuario (la suma de todos los valores introducidos entre la cantidad de valores introducidos).\par
+    Ejemplo de uso (salida del programa e inputs del usuario):
+    \begin{verbatim}
+    $ ./ac ../test/media.a
+
+    Programa para calcular la media de varios numeros.
+    Introduzca el siguiente numero: 1
+    Introduzca 1 si desea introducir mas numeros: 1
+    Introduzca el siguiente numero: 2
+    Introduzca 1 si desea introducir mas numeros: 1
+    Introduzca el siguiente numero: 3
+    Introduzca 1 si desea introducir mas numeros: 1
+    Introduzca el siguiente numero: 4
+    Introduzca 1 si desea introducir mas numeros: 0
+    
+    La media es 2.5
+    \end{verbatim}
+    
+    \item Ejemplo \textit{while-if-else} (\texttt{ejemplo-while-if-else.a}): En este ejemplo, se lleva a cabo una sentencia \texttt{if-else} tal que está construida dentro del bloque de sentencias de un \texttt{while}.\par
+    En concreto, lo que hace es dar un valor inicial a una variable \texttt{x} e ir incrementando su valor en el bucle \texttt{while}. A cada pasada imprime ``Es par'' en caso de que la variable módulo dos sea igual a cero, y ``Es impar'' en caso contrario.\par
+    Ejemplo de uso (salida del programa):
+    \begin{verbatim}
+    $ ./ac ../test/ejemplo-while-if-else.a
+
+    Es par 0
+    Es impar 1
+    Es par 2
+    Es impar 3
+    Es par 4
+    Es impar 5
+    Valor final: 6
+    \end{verbatim}
+    
+    \item Ejemplo de operaciones de bit y aritméticas (\texttt{ejemplo-operaciones.a}): En este ejemplo se realizan, primero, múltiples operaciones de bit seguidas de otras tantas aritmética. Dentro del propio programa hay dos comentarios que especifican en qué punto comienzan a definirse cada tipo de operaciones. El primero es un comentario de una única línea, y el segundo multilínea. Además, el programa imprime por pantalla los diversos resultados que va calculando.\par
+    Ejemplo de uso (salida del programa):
+    \begin{verbatim}
+    $ ./ac ../test/ejemplo-operaciones.a
+
+    Valor de x al principio: 4
+    Valor de y al principio: 2
+    Valor de x tras la operacion shift left con y: 16
+    Valor de x tras la operacion and con y: 0
+    Valor de x tras la operacion not: -5
+    Nuevo valor de x: 40
+    Nuevo valor de y: 15.63
+    Valor del x * y: 625.2
+    Nuevo valor de x = x ^ 3 - (5 + 4) * 15 / 2 = 63932.5
+    Nuevo valor de x: 45
+    El modulo de x % 9 es: 0
+    Coseno (radianes) de x: 0.525322
+    Seno (radianes) de x: 0.850904
+    Tangente (radianes) de x: 1.61978
+    Logaritmo neperiano de x: 3.80666
+    Cociente de x entre 6: 7
+    Valor de x tras ser negado tres veces: -45
+    Valor de x tras aplicar tres veces el operador unario '+': 45
+    \end{verbatim}
+    
+    \item Ejemplo de programa con error de sintaxis (\texttt{ejemplo-error-sintaxis.a}): Este ejemplo contiene una estructura sintáctica errónea, pues se presenta una estructura en la que un \texttt{else} está en correspondencia con un \texttt{while}, en lugar de con un \texttt{if}.\par
+    Ejemplo de uso (salida del programa):
+    \begin{verbatim}
+    $ ./ac ../test/ejemplo-error-sintaxis.a
+    
+    ../test/ejemplo-error-sintaxis.a(4): error -- syntax error
+    Compilacion abortada.
+    \end{verbatim}
+    
+    \item Ejemplo de programa con error léxico (\texttt{ejemplo-error-lexico.a}): Este ejemplo contiene un carácter no esperado, \texttt{@}, y por lo tanto produce un error léxico.\par
+    Ejemplo de uso (salida del programa):
+    \begin{verbatim}
+    $ ./ac ../test/ejemplo-error-lexico.a
+    
+    ../test/ejemplo-error-lexico.a(5): error -- Caracter
+    inesperado: @
+    \end{verbatim}
+    
+    \item Ejemplo de programa con error de variable (\texttt{ejemplo-error-variable.a}): Este ejemplo trata de ilustrar un problema común que se da en los lenguajes de programación en los que no hace falta declarar una variable antes de usarla, como es el caso de \texttt{A}.\par
+    En el programa, primero se lee un valor del usuario a una variable \texttt{x}, y luego se trata de imprimir, erróneamente, el valor de una variable no inicializada \texttt{y}. La primera línea del programa es interpretada correctamente, pero cuando llega el momento de interpretar la segunda, no se puede encontrar la variable especificada en la tabla de símbolos, produciéndose un error de ejecución.\par
+    Ejemplo de uso (salida del programa):
+    \begin{verbatim}
+    $ ./ac ../test/ejemplo-error-variable.a
+    
+    Introduzca un valor: 0
+    ../test/ejemplo-error-variable.a(2) error -- identificador no
+    encotrado: y
+    \end{verbatim}
+\end{itemize}
+
+\section{Problemas conocidos}
+A continuación se detallan algunos problemas o inconvenientes que el intérprete desarrollado impone sobre los programas en lenguaje \texttt{A}. Se pretende, así, demostrar las limitaciones que se conocen del intérprete, al igual que exponer sus causas o especificar cómo han intentado solventarse.
+\begin{itemize}
+    \item Todos los programas escritos en \texttt{A} deben terminar con un salto de línea, pues de otra manera se produce un error de sintaxis. Esto se debe a que, como elementos básicos de un programa, se definen construcciones formadas por sentencias seguidas cada uno de un salto de línea, o simplemente saltos de línea.\par
+    \item Debido también a los saltos de línea, la localización de los delimitadores de bloque es algo sensible. La primera sentencia de un bloque de sentencias no puede localizarse en la misma línea que el delimitador de apertura de dicho bloque. Además, una palabra reservada \texttt{else} solo puede localizarse después de un bloque de sentencias si se encuentra en la misma línea que el delimitador de cierre del bloque.\par
+    \begin{itemize}
+        \item También, por la forma en que se han definido las producciones de las sentencias de tipo \textit{if}, \textit{if-else} y \textit{while}, de no ir alguna de ellas seguida por un bloque de sentencias, sino por una única sentencia, dicha sentencia ha de escribirse en la misma línea que el correspondiente \texttt{if}, \texttt{else} o \texttt{while}. En el caso de un \textit{if-else} que presente dos únicas sentencias como ejecuciones del \texttt{if} y el \texttt{else} respectivamente, toda la estructura sintáctica debe escribirse en la misma línea para funcionar correctamente.
+    \end{itemize}
+    \item Es conocido que la gramática independiente del contexto definida en el fichero \texttt{yacc} es ambigua, produciendo dos conflictos del tipo \textit{shift/reduce}. Uno de estos conflictos es debido a la forma recursiva en que están definidos los bloques de sentencias, y el otro a la admisión de sentencias condicionales \texttt{if} con y sin un \texttt{else} después. Se han intentado arreglar ambos conflictos, pero, al no encontrarse ningún caso práctico en el que supongan un problema real, y debido a la dificultad que suponía su corrección, finalmente no han sido corregidos de la versión final del intérprete.
+\end{itemize}
+
+\section{Apéndice - Sobre la elaboración del proyecto}
+\subsection{Comunicación entre miembros}
+El proceso que se ha seguido para elaborar esta práctica comenzó en el foro de la asignatura, donde Manuel hizo una propuesta inicial de características a implementar en el intérprete. Allí mismo, debatimos qué nos parecía mejor y peor implementar, y finalmente llegamos a un consenso entre todos. Tras esto, pedimos al profesor de la asignatura que nos orientara respecto al nivel de dificultad de la práctica. Tras darnos su aprobación, nos pusimos manos a la obra.\par
+Inicialmente teníamos pensado hablar todo lo relativo al proyecto por el foro de la asignatura, pero éste no transmite los mensajes a los integrantes del grupo de manera inmediata; por tanto, para tratar temas cruciales de manera rápida, optamos por una aplicación de mensajería instantánea (Telegram).  Además, hemos utilizado \textsc{Discord} para hacer llamadas de voz y poder compartir pantalla, trabajando así todos sobre el mismo código, pero cada uno desde su casa. Durante los últimos días de desarrollo del proyecto, dado el trabajo casi continuo de todos los miembros del grupo, las comunicaciones se realizaron exclusivamente por alguno de los dos últimos medios mencionados.\par
+\subsection{Plataformas y herramientas utilizadas}
+Para la organización y almacenamiento del código fuente del intérprete, hemos utilizado un repositorio \textit{git} almacenado en el \textit{GitLab} de la escuela de Ingeniería Informática de la Universidad de Valladolid\footnote{\url{https://gitlab.inf.uva.es/marruiz/glf-proyecto/}.}.\par
+Para la realización de este documento, hemos utilizado la plataforma de edición de documentos \LaTeX{} \textit{online} \textit{Overleaf}. Esta plataforma permite trabajar a todos los integrantes del grupo simultáneamente en el mismo documento, que se almacena automáticamente en la nube, para poder ser descargado en cualquier momento. Debido a la naturaleza inherentemente \textit{online} de la plataforma, y por comodidad, los ficheros fuentes de este documento no se han incluido en el repositorio \textit{git} mencionado anteriormente hasta finalizada su elaboración.\par
+La presentación sobre el proyecto, con la que se ha realizado el vídeo grupal de resumen y defensa del mismo, la hemos realizado mediante \textit{Power Point}.\par
+El vídeo lo hemos realizado en tres partes separadas, repartiendo los temas a tratar entre cada uno de los integrantes del grupo, y juntando finalmente las partes en el vídeo final. Para la grabación del vídeo, se han utilizado tres aplicaciones: María utilizó \textit{Kaltura}, ya que es la aplicación que recomienda la Universidad de Valladolid, Andrés utilizó ScreenCast-o-Matic por compatibilidad y comodidad, y Manuel utilizó \textit{OBS}, debido a su experiencia previa con dicho software. Para el montaje del vídeo final, utilizamos \textit{Adobe Premiere Pro CC}. Para el almacenamiento del vídeo, se ha utilizado \textit{OneDrive}\footnote{\url{https://alumnosuvaes-my.sharepoint.com/:v:/g/personal/manuel\_castro\_alumnos\_uva\_es/Ef2zgArePRZIrCm42Lg7SZIB3qHNHzod0nJsVElh0n1vRQ}}, como recomendó el profesor de la asignatura.
+
+\subsection{Reparto de trabajo}
+Inicialmente, se realizó un análisis de tareas por hacer, para lo cual Manuel estudió y comentó el código del intérprete sencillo de \textsc{Dušan Kolář}, y lo compartió por el foro del grupo en el campus virtual de la asignatura. Las primeras características léxicas y sintácticas del intérprete, que fueron las más comunes con las del intérprete sencillo del señor \textsc{Kolář}, se realizaron, pues, en conjunto por todos los integrantes del grupo, a través de una llamada de \textsc{Discord}.\par
+Después, con la base del intérprete ya asentada, se realizó el análisis de tareas ``extra'' o más complejas por hacer, y cada integrante eligió una sobre la que trabajar: Manuel escogió la tabla de símbolos, María lo relativo a los bucles \textit{while} y los bloques de sentencias, y Andrés lo relativo a las sentencias condicionales \textit{if}. Conforme se fue avanzando en el desarrollo de cada una de estas partes, los ámbitos de trabajo de cada integrante se ampliaron, por lo que se retomó el trabajo en conjunto mediante llamada de \textsc{Discord}. A excepción de los ficheros fuente relativos a la tabla de símbolos, que fueron elaborados exclusivamente por Manuel, todos los integrantes trabajaron en todos los ficheros fuente del intérprete.\par
+Tras la elaboración de todas las partes del intérprete, Manuel se encargó de la corrección de \textit{bugs} (errores), así como del remate de las partes concernientes a los bloques de sentencias y estructuras \textit{if-else}; eso sí, ayudado en todo momento por sus compañeros (ya que, se insiste, las últimas etapas del trabajo se desarrollaron en llamada conjunta). Durante el proceso de \textit{debugging}, y para facilitar dicho proceso, Manuel implementó la impresión opcional de los árboles \textit{AST} de los programas interpretados. Como añadido final, también implementó las operaciones de bits, y las distinciones implícitas entre tipos numéricos enteros y numéricos reales necesarias para el correcto funcionamiento de estas operaciones.\par
+Por su parte, María y Andrés se dedicaron a ayudar durante el proceso de \textit{debugging} y puesta a punto del intérprete, investigando en internet cómo se podrían implementar ciertas características que estaban dando problemas. Además, ambos se encargaron de la elaboración conjunta de este documento. Andrés también se encargó de la elaboración de la presentación \textit{Power Point} del trabajo, y María de la elaboración de los ejemplos de prueba del intérprete (ayudada en algún caso concreto por Manuel).\par
+Finalmente, se acordó cómo se iba a repartir la video-defensa del grupo, y cada uno grabó su parte correspondiente. Manuel fue el encargado de montar el vídeo final, así como de dar una última revisión y puesta a punto a este documento.\par
+\textsc{Nota:} Aunque el registro de \textit{commits} del repositorio \textit{git} del proyecto puede utilizarse como guía para determinar el trabajo que ha realizado cada integrante del grupo, no debe interpretarse muy estrictamente. Como ya se ha dicho, en la mayoría de casos el trabajo fue realizado de forma conjunta, mediante el sistema de llamadas de \textsc{Discord}. Aunque un integrante concreto fuese el encargado de crear y \textit{pushear} un \textit{commit}, el código modificado en el mismo muy probablemente fuese el resultado del trabajo de todos los integrantes.
+
+\section{Referencias bibliográficas}
+\vspace{-1.2cm}
+\renewcommand\refname{}
+\bibliographystyle{alpha}
+\bibliography{biblio.bib}
+\nocite{docGLF1}
+\nocite{docGLF2}
+\nocite{docGLF3}
+\nocite{docGLF4}
+\nocite{docGLF5}
+\begin{itemize}
+    \item[[Clib]] Bibliotecas de C:
+    \begin{itemize}
+        \item[--] \textit{Standard input-output header} (\texttt{stdio.h})
+        \item[--] \textit{Standard library header} (\texttt{stdlib.h})
+        \item[--] \textit{Standard String library header} (\texttt{string.h})
+        \item[--] \textit{Standard Math library header} (\texttt{math.h})
+        \item[--] \textit{Standard Boolean type and values header} (\texttt{stdbool.h})
+    \end{itemize}
+\end{itemize}
+
+\end{document}
