@@ -351,7 +351,7 @@ char programName[256] = "";
 /* Gestión de errores */
 int yyerror(char *error)
 {
-	fprintf(stderr, "%s(%d): error -- %s\n", programName, yylineno, error);
+	fprintf(stderr, "%s(%d): error -- %s\n", programName, yylineno - 1, error);
 	return 1;
 }
 
@@ -376,6 +376,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Parseo */
+	yylineno = 0;
 	if (yyparse() != PARSE_SUCCESS)
 	{
 		fclose(yyin);

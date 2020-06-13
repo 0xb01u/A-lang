@@ -197,7 +197,12 @@ COMM ("/*"([^"*/"])*"*/")
 		}
 		
 .		{
-			fprintf(stderr, "%s(%d): error -- Caracter inesperado %c\n", programName, yylineno, yytext[0]);
+			fprintf(stderr, "%s(%d): error -- Caracter inesperado: %c\n", programName, yylineno + 1, yytext[0]);
+			/* A yylineno se le suma 1 porque se inicializa a 0.
+			   Entonces, cuando se produce un error léxico en una línea,
+			   no se ha terminado de procesar la sentencia de dicha línea
+			   (y por tanto no se ha leído su '\n' asociado), por lo que yylineno
+			   todavía no ha sido incrementado. */
 			exit(LEXICAL_ERROR);
 		}
 
